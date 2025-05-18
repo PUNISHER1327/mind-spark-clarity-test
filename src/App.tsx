@@ -10,6 +10,7 @@ import Tests from "./pages/Tests";
 import ReadingTest from "./pages/ReadingTest";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import SupportResourcesPage from "./pages/SupportResourcesPage";
 import { 
   AccessibilityProvider, 
   AccessibilitySettings, 
