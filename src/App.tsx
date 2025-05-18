@@ -11,6 +11,7 @@ import ReadingTest from "./pages/ReadingTest";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
 import SupportResourcesPage from "./pages/SupportResourcesPage";
+import ImproveDyslexiaPage from "./pages/ImproveDyslexiaPage";
 import { 
   AccessibilityProvider, 
   AccessibilitySettings, 
@@ -34,8 +35,9 @@ const App = () => (
             <Route path="/tests" element={<Tests />} />
             <Route path="/reading-test" element={<ReadingTest />} />
             <Route path="/results" element={<Results />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="/support" element={<SupportResourcesPage />} />
+            <Route path="/improve" element={<ImproveDyslexiaPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
