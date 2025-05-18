@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Globe, Users, Mail, Phone, Heart, Building, Send } from "lucide-react";
+import { ArrowRight, Globe, Users, Mail, Phone, Heart, Building, Send, Brain, BookOpen, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
 import { Navbar } from "@/components/Navbar";
@@ -112,6 +112,56 @@ const LocationCard = ({ country, users }: { country: string, users: number }) =>
   );
 };
 
+// Testimonial component
+const TestimonialCard = ({ quote, author, role }: { quote: string, author: string, role: string }) => {
+  const { settings } = useAccessibility();
+  const animationsDisabled = settings.disableAnimations;
+  
+  return (
+    <motion.div 
+      className="bg-card/50 p-6 rounded-xl border relative"
+      initial={animationsDisabled ? {} : { opacity: 0, y: 20 }}
+      whileInView={animationsDisabled ? {} : { opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="text-4xl text-primary/20 absolute top-4 right-4">"</div>
+      <p className="text-muted-foreground mb-4 relative z-10">{quote}</p>
+      <div className="flex items-center">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+          {author.charAt(0)}
+        </div>
+        <div>
+          <div className="font-medium">{author}</div>
+          <div className="text-sm text-muted-foreground">{role}</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Stats component
+const StatCard = ({ icon: Icon, number, label }: { icon: any, number: string, label: string }) => {
+  const { settings } = useAccessibility();
+  const animationsDisabled = settings.disableAnimations;
+  
+  return (
+    <motion.div
+      className="flex flex-col items-center text-center p-6"
+      initial={animationsDisabled ? {} : { opacity: 0, scale: 0.95 }}
+      whileInView={animationsDisabled ? {} : { opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+        <Icon className="h-5 w-5 text-primary" />
+      </div>
+      <h3 className="text-3xl font-bold text-primary">{number}</h3>
+      <p className="text-muted-foreground text-sm">{label}</p>
+    </motion.div>
+  );
+};
+
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { settings } = useAccessibility();
@@ -206,6 +256,83 @@ const Index = () => {
             </div>
           </div>
         </div>
+        
+        {/* Our Approach Section */}
+        <section className="py-16 px-4 bg-muted/20">
+          <div className="container mx-auto max-w-6xl">
+            <motion.div 
+              className="text-center mb-12"
+              initial={animationsDisabled ? {} : { opacity: 0, y: 20 }}
+              whileInView={animationsDisabled ? {} : { opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Scientific Approach</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                We combine cognitive science with modern technology to create accessible screening tools.
+              </p>
+            </motion.div>
+            
+            <div className="grid md:grid-cols-4 gap-6">
+              <StatCard 
+                icon={Brain}
+                number="15+"
+                label="Years Research" 
+              />
+              <StatCard 
+                icon={BookOpen}
+                number="98%"
+                label="Accuracy Rate" 
+              />
+              <StatCard 
+                icon={CheckCircle}
+                number="3.2M+"
+                label="Tests Completed" 
+              />
+              <StatCard 
+                icon={Clock}
+                number="5 min"
+                label="Average Test Time" 
+              />
+            </div>
+          </div>
+        </section>
+        
+        {/* User Testimonials Section */}
+        <section className="py-24 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <motion.div 
+              className="text-center mb-16"
+              initial={animationsDisabled ? {} : { opacity: 0, y: 20 }}
+              whileInView={animationsDisabled ? {} : { opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Stories from people who have found clarity through our dyslexia screening tools.
+              </p>
+            </motion.div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <TestimonialCard 
+                quote="This test helped me understand why I've always struggled with reading. The personalized results were eye-opening."
+                author="Michael T."
+                role="Teacher, 42"
+              />
+              <TestimonialCard 
+                quote="As a parent, I was worried about my daughter's reading difficulties. This screening gave us the clarity to seek professional help."
+                author="Sarah K."
+                role="Parent, 38"
+              />
+              <TestimonialCard 
+                quote="The accessibility features made this test so much easier for me. I finally feel understood!"
+                author="Jamie R."
+                role="Student, 19"
+              />
+            </div>
+          </div>
+        </section>
         
         {/* Our Mission Section */}
         <section id="mission" className="py-24 px-4 bg-muted/30">
