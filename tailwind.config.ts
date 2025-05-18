@@ -22,6 +22,7 @@ export default {
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
 				heading: ['Space Grotesk', 'sans-serif'],
+				dyslexic: ['OpenDyslexic', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

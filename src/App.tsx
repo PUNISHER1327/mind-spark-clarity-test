@@ -10,26 +10,36 @@ import Tests from "./pages/Tests";
 import ReadingTest from "./pages/ReadingTest";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import { 
+  AccessibilityProvider, 
+  AccessibilitySettings, 
+  ReadingRuler 
+} from "./components/AccessibilitySettings";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/tests" element={<Tests />} />
-          <Route path="/reading-test" element={<ReadingTest />} />
-          <Route path="/results" element={<Results />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AccessibilityProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <ReadingRuler />
+        <AccessibilitySettings />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/tests" element={<Tests />} />
+            <Route path="/reading-test" element={<ReadingTest />} />
+            <Route path="/results" element={<Results />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/support" element={<SupportResourcesPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AccessibilityProvider>
   </QueryClientProvider>
 );
 

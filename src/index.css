@@ -79,6 +79,40 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading tracking-tight;
   }
+  
+  /* Accessibility styles */
+  .large-text {
+    font-size: 1.25rem !important;
+  }
+  
+  .large-text h1 {
+    font-size: 2.5rem !important;
+  }
+  
+  .large-text h2 {
+    font-size: 2rem !important;
+  }
+  
+  .large-text h3 {
+    font-size: 1.75rem !important;
+  }
+  
+  .increased-line-spacing {
+    line-height: 2 !important;
+  }
+  
+  /* Background themes */
+  .bg-sepia {
+    background-color: #fcefc7 !important;
+  }
+  
+  .bg-soft-blue {
+    background-color: #d3e4fd !important;
+  }
+  
+  .bg-soft-gray {
+    background-color: #f1f0fb !important;
+  }
 }
 
 @layer utilities {
