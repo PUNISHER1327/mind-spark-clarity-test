@@ -1,61 +1,104 @@
 
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { ThemeToggle } from "./ThemeToggle";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAccessibility } from "@/components/AccessibilitySettings";
+import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const location = useLocation();
+export const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { settings } = useAccessibility();
+  const animationsDisabled = settings.disableAnimations;
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 10);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "About Dyslexia", path: "/about" },
-    { name: "Tests", path: "/tests" },
-    { name: "Contact", path: "/contact" },
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const navLinks = [
+    { text: "Home", href: "/" },
+    { text: "About", href: "/about" },
+    { text: "Tests", href: "/tests" },
+    { text: "Support", href: "/support" },
+    { text: "Improve", href: "/improve" },
   ];
 
   return (
-    <header 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-sm",
-        scrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
-      )}
-    >
-      <div className="container mx-auto flex items-center justify-between h-16 px-4 md:px-6">
-        <Link to="/" className="font-heading text-xl font-bold flex items-center gap-2">
-          <span className="bg-primary text-white rounded-md px-1.5 py-0.5">D</span>
-          <span className="text-foreground">DyslexiaScreen</span>
-        </Link>
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? "py-3 bg-background/80 backdrop-blur-lg border-b" : "py-5"
+        }`}
+      >
+        <div className="container flex items-center justify-between">
+          <Link to="/" className="flex items-center">
+            <span className="text-2xl font-bold text-primary">Dyslexia</span>
+            <span className="text-2xl font-medium ml-1">Test</span>
+          </Link>
 
-        <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                location.pathname === item.path ? "text-primary" : "text-foreground/70"
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.text}
+                to={link.href}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md transition-colors"
+              >
+                {link.text}
+              </Link>
+            ))}
+            <div className="ml-2">
+              <ThemeToggle />
+            </div>
+          </nav>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
+          {/* Mobile Menu Button */}
+          <div className="flex items-center md:hidden">
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={toggleMenu} className="ml-2">
+              <Menu />
+            </Button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={animationsDisabled ? { opacity: 1 } : { opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-[60px] left-0 right-0 bg-background border-b z-40 md:hidden"
+          >
+            <nav className="container py-4 flex flex-col">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.text}
+                  to={link.href}
+                  className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.text}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
-}
+};
