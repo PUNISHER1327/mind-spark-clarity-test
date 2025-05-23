@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ import {
   Calendar,
   Stethoscope,
   GraduationCap,
-  Research
+  Search
 } from "lucide-react";
 
 const About = () => {
@@ -46,7 +45,7 @@ const About = () => {
       year: "1925",
       title: "Research Expansion",
       description: "Samuel Orton began systematic studies of reading difficulties and developed early intervention methods.",
-      icon: Research,
+      icon: Search,
       color: "bg-green-500"
     },
     {
