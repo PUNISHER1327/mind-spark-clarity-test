@@ -468,8 +468,8 @@ export const AccessibilitySettings = () => {
   );
 };
 
-// Export ReadingRuler component so it can be imported in App.tsx
-export const ReadingRuler: React.FC<{ 
+// Keep ReadingRuler as internal component, not exported
+const ReadingRuler: React.FC<{ 
   rulerPosition: number; 
   setRulerPosition: (position: number) => void;
 }> = ({ rulerPosition, setRulerPosition }) => {

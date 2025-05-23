@@ -14,8 +14,7 @@ import SupportResourcesPage from "./pages/SupportResourcesPage";
 import ImproveDyslexiaPage from "./pages/ImproveDyslexiaPage";
 import { 
   AccessibilityProvider, 
-  AccessibilitySettings, 
-  ReadingRuler 
+  AccessibilitySettings
 } from "./components/AccessibilitySettings";
 
 const queryClient = new QueryClient();
@@ -26,7 +25,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ReadingRuler />
         <AccessibilitySettings />
         <BrowserRouter>
           <Routes>
