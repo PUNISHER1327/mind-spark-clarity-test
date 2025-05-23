@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -41,12 +40,14 @@ export const Navbar = () => {
     { text: "Improve", href: "/improve" },
   ];
 
+  const isActive = (href: string) => location.pathname === href;
+
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? "py-3 bg-background/80 backdrop-blur-lg border-b shadow-sm" 
+            ? "py-3 bg-background/80 backdrop-blur-lg border-b shadow-sm"
             : "py-3 bg-background/80 backdrop-blur-lg border-b shadow-sm"
         }`}
       >
@@ -62,7 +63,11 @@ export const Navbar = () => {
               <Link
                 key={link.text}
                 to={link.href}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isActive(link.href)
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
                 {link.text}
               </Link>
@@ -75,7 +80,12 @@ export const Navbar = () => {
           {/* Mobile Menu Button */}
           <div className="flex items-center md:hidden">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={toggleMenu} className="ml-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMenu}
+              className="ml-2"
+            >
               <Menu />
             </Button>
           </div>
@@ -97,7 +107,11 @@ export const Navbar = () => {
                 <Link
                   key={link.text}
                   to={link.href}
-                  className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-md"
+                  className={`px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                    isActive(link.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.text}
