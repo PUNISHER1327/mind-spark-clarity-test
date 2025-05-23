@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, Volume2 } from "lucide-react";
@@ -469,7 +468,8 @@ export const AccessibilitySettings = () => {
   );
 };
 
-const ReadingRuler: React.FC<{ 
+// Export ReadingRuler component so it can be imported in App.tsx
+export const ReadingRuler: React.FC<{ 
   rulerPosition: number; 
   setRulerPosition: (position: number) => void;
 }> = ({ rulerPosition, setRulerPosition }) => {
