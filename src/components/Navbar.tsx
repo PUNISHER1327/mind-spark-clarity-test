@@ -39,7 +39,9 @@ export const Navbar = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "py-3 bg-background/80 backdrop-blur-lg border-b" : "py-5 bg-background/60 backdrop-blur-sm"
+          isScrolled 
+            ? "py-3 bg-background/80 backdrop-blur-lg border-b shadow-sm" 
+            : "py-5 bg-transparent"
         }`}
       >
         <div className="container flex items-center justify-between">

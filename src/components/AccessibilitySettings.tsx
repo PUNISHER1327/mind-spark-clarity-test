@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, Volume2 } from "lucide-react";
@@ -106,11 +107,50 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   const applySettingsToDocument = (currentSettings: AccessibilitySettings) => {
     const root = document.documentElement;
 
-    // Font family
+    // Font family - properly load OpenDyslexic
     if (currentSettings.dyslexicFont) {
-      root.style.setProperty("--font-sans", "'OpenDyslexic', sans-serif");
+      // Add OpenDyslexic font link if not already present
+      if (!document.querySelector('link[href*="opendyslexic"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/OpenDyslexic-Regular.css';
+        document.head.appendChild(link);
+      }
+      root.style.setProperty("--font-sans", "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif");
+      document.body.style.fontFamily = "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif";
     } else {
-      root.style.setProperty("--font-sans", "'Inter', sans-serif");
+      root.style.setProperty("--font-sans", "'Inter', system-ui, sans-serif");
+      document.body.style.fontFamily = "'Inter', system-ui, sans-serif";
+    }
+
+    // Disable animations
+    if (currentSettings.disableAnimations) {
+      root.style.setProperty("--animation-duration", "0s");
+      root.style.setProperty("--transition-duration", "0s");
+      document.body.classList.add("disable-animations");
+      const style = document.createElement('style');
+      style.textContent = `
+        .disable-animations *,
+        .disable-animations *::before,
+        .disable-animations *::after {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+        }
+      `;
+      if (!document.querySelector('#disable-animations-style')) {
+        style.id = 'disable-animations-style';
+        document.head.appendChild(style);
+      }
+    } else {
+      root.style.removeProperty("--animation-duration");
+      root.style.removeProperty("--transition-duration");
+      document.body.classList.remove("disable-animations");
+      const existingStyle = document.querySelector('#disable-animations-style');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
     }
 
     // Background theme
@@ -193,16 +233,28 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   const readTextUnderRuler = () => {
     if (!settings.textToSpeech || !settings.readingRuler) return;
 
-    // Get all text elements at the ruler position
-    const elements = document.elementsFromPoint(window.innerWidth / 2, rulerPosition);
+    // Get elements at the ruler position
+    const centerX = window.innerWidth / 2;
+    const elements = document.elementsFromPoint(centerX, rulerPosition);
     let textToRead = "";
 
     for (const element of elements) {
       if (element.textContent && element.textContent.trim()) {
-        // Extract text from the line under the ruler
         const rect = element.getBoundingClientRect();
-        if (rect.top <= rulerPosition && rect.bottom >= rulerPosition) {
-          textToRead = element.textContent.trim();
+        // Check if the ruler overlaps with this element
+        if (rect.top <= rulerPosition + rulerHeight / 2 && rect.bottom >= rulerPosition - rulerHeight / 2) {
+          // Get text content and clean it up
+          const fullText = element.textContent.trim();
+          
+          // If it's a long text, try to get the line under the ruler
+          if (fullText.length > 50) {
+            const words = fullText.split(' ');
+            // Take a reasonable chunk of text (around 10-15 words)
+            const chunkSize = Math.min(15, words.length);
+            textToRead = words.slice(0, chunkSize).join(' ');
+          } else {
+            textToRead = fullText;
+          }
           break;
         }
       }
@@ -227,6 +279,12 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
       }}
     >
       {children}
+      {settings.readingRuler && (
+        <ReadingRuler 
+          rulerPosition={rulerPosition}
+          setRulerPosition={setRulerPosition}
+        />
+      )}
     </AccessibilityContext.Provider>
   );
 };
@@ -411,15 +469,17 @@ export const AccessibilitySettings = () => {
   );
 };
 
-export const ReadingRuler = () => {
+const ReadingRuler: React.FC<{ 
+  rulerPosition: number; 
+  setRulerPosition: (position: number) => void;
+}> = ({ rulerPosition, setRulerPosition }) => {
   const { settings, rulerHeight, readTextUnderRuler } = useAccessibility();
-  const [position, setPosition] = useState(300);
 
   useEffect(() => {
     if (!settings.readingRuler) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      setPosition(e.clientY);
+      setRulerPosition(e.clientY);
     };
 
     const handleClick = () => {
@@ -435,25 +495,29 @@ export const ReadingRuler = () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("click", handleClick);
     };
-  }, [settings.readingRuler, settings.textToSpeech, readTextUnderRuler]);
+  }, [settings.readingRuler, settings.textToSpeech, readTextUnderRuler, setRulerPosition]);
 
   if (!settings.readingRuler) return null;
 
   return (
     <motion.div
-      className="fixed left-0 w-full z-40 pointer-events-none bg-primary/10 cursor-pointer"
+      className="fixed left-0 w-full z-40 pointer-events-none bg-primary/20 border-y-2 border-primary/50"
       style={{
         height: rulerHeight,
-        top: position - rulerHeight / 2,
+        top: rulerPosition - rulerHeight / 2,
       }}
       animate={{
-        top: position - rulerHeight / 2,
+        top: rulerPosition - rulerHeight / 2,
       }}
-      transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-      }}
+      transition={
+        settings.disableAnimations 
+          ? { duration: 0 }
+          : {
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+            }
+      }
     />
   );
 };
