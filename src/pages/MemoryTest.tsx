@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,8 +28,7 @@ interface TestResult {
 const MemoryTest = () => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [phase, setPhase] = useState<"memorize" | "recall" | "answer">("memorize");
-  const [memoryTimer, setMemoryTimer] = useState<number | null>(null);
+  const [phase, setPhase] = useState<"memorize" | "recall">("memorize");
   const [userInputs, setUserInputs] = useState<string[]>([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [results, setResults] = useState<TestResult[]>([]);
@@ -36,7 +36,6 @@ const MemoryTest = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Memory test questions
   const questions: Question[] = [
     {
       type: "sequence",
@@ -92,25 +91,16 @@ const MemoryTest = () => {
     setTimeLeft(questions[currentQuestionIndex].duration);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value) {
-      setUserInputs([value]);
-    } else {
-      setUserInputs([]);
-    }
-  };
-
-  const handleAddAnswer = () => {
-    if (userInputs.length > 0 && userInputs[0]) {
-      setUserInputs([...userInputs, ""]);
-    }
-  };
-
   const handleWordInput = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const newInputs = [...userInputs];
     newInputs[index] = e.target.value;
     setUserInputs(newInputs);
+  };
+
+  const handleAddAnswer = () => {
+    if (userInputs.length === 0 || userInputs[userInputs.length - 1]?.trim()) {
+      setUserInputs([...userInputs, ""]);
+    }
   };
 
   const calculateScore = (question: Question, answers: string[]): boolean => {
@@ -127,7 +117,7 @@ const MemoryTest = () => {
         }
       }
       
-      return score >= correctAnswers.length * 0.6; // 60% threshold
+      return score >= correctAnswers.length * 0.6;
     } else if (question.type === "recall") {
       const correctContent = question.content.map(item => item.toLowerCase());
       let correctCount = 0;
@@ -138,7 +128,7 @@ const MemoryTest = () => {
         }
       }
       
-      return correctCount >= question.content.length * 0.5; // 50% threshold
+      return correctCount >= question.content.length * 0.5;
     }
     
     return false;
@@ -174,15 +164,12 @@ const MemoryTest = () => {
       riskFactors.push("Slower processing in memory recall tasks");
     }
     
-    const sequenceTaskScores = results.filter((_, i) => 
-      questions[i].type === "sequence"
-    );
+    const easyQuestionErrors = results.filter(r => 
+      r.difficulty === "easy" && !r.isCorrect
+    ).length;
     
-    const sequenceAccuracy = sequenceTaskScores.length > 0 ? 
-      (sequenceTaskScores.filter(r => r.isCorrect).length / sequenceTaskScores.length) * 100 : 100;
-    
-    if (sequenceAccuracy < 40) {
-      riskFactors.push("Significant difficulty with sequential memory");
+    if (easyQuestionErrors >= 1) {
+      riskFactors.push("Difficulty with basic memory tasks");
     }
     
     if (riskFactors.length >= 2 || accuracy < 30) {
@@ -318,7 +305,7 @@ const MemoryTest = () => {
                   variant="outline" 
                   onClick={handleAddAnswer}
                   className="w-full mt-2"
-                  disabled={!userInputs[userInputs.length - 1]?.trim()}
+                  disabled={userInputs.length > 0 && !userInputs[userInputs.length - 1]?.trim()}
                 >
                   + Add Another Word
                 </Button>

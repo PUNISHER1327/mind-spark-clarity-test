@@ -31,7 +31,6 @@ const ReadingTest = () => {
   const [isTestComplete, setIsTestComplete] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Enhanced questions with varying difficulty levels
   const questions: Question[] = [
     {
       text: "The cat sat on the mat. The dog barked at the cat. The cat jumped off the mat and ran away. Where did the cat sit?",
@@ -90,24 +89,20 @@ const ReadingTest = () => {
     const correctAnswers = results.filter(r => r.isCorrect).length;
     const accuracy = (correctAnswers / totalQuestions) * 100;
     
-    // Calculate average reading time
     const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
     
-    // Time thresholds (in seconds) based on difficulty
     const timeThresholds = {
-      easy: 15,    // Easy questions should take < 15 seconds
-      medium: 25,  // Medium questions should take < 25 seconds  
-      hard: 40     // Hard questions should take < 40 seconds
+      easy: 15,
+      medium: 25,
+      hard: 40
     };
     
-    // Calculate time score - how many questions took too long
     const slowQuestions = results.filter(r => 
       r.timeSpent > timeThresholds[r.difficulty]
     ).length;
     
     const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
     
-    // Dyslexia risk factors
     let riskFactors = [];
     let riskLevel = "Low";
     
@@ -123,7 +118,6 @@ const ReadingTest = () => {
       riskFactors.push("Extended processing time per question");
     }
     
-    // Calculate overall risk
     const easyQuestionErrors = results.filter(r => 
       r.difficulty === "easy" && !r.isCorrect
     ).length;
@@ -132,7 +126,6 @@ const ReadingTest = () => {
       riskFactors.push("Difficulty with basic reading comprehension");
     }
     
-    // Determine risk level
     if (riskFactors.length >= 3 || (accuracy < 50 && timeScore < 50)) {
       riskLevel = "High";
     } else if (riskFactors.length >= 2 || accuracy < 65 || timeScore < 65) {
@@ -144,7 +137,7 @@ const ReadingTest = () => {
       averageTime,
       timeScore,
       riskFactors,
-      riskLevel,
+      riskLevel: riskLevel as "Low" | "Moderate" | "High",
       correctAnswers,
       totalQuestions
     };
@@ -153,11 +146,9 @@ const ReadingTest = () => {
   const handleNextQuestion = () => {
     if (!startTime) return;
     
-    // Calculate time spent on this question
     const endTime = new Date();
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
-    // Record result
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
       isCorrect: selectedOption === questions[currentQuestionIndex].correctAnswer,
@@ -175,14 +166,12 @@ const ReadingTest = () => {
     } else {
       setIsTestComplete(true);
       
-      // Calculate comprehensive results with dyslexia analysis
       const analysis = calculateDyslexiaRisk(newResults);
       
       const testResults = {
         test: "Reading Fluency",
         ...analysis,
-        detailedResults: newResults,
-        questions: questions
+        detailedResults: newResults
       };
       
       localStorage.setItem("testResults", JSON.stringify(testResults));

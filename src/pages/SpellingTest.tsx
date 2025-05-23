@@ -18,8 +18,6 @@ interface Question {
 interface TestResult {
   questionIndex: number;
   isCorrect: boolean;
-  userAnswer: string;
-  correctAnswer: string;
   timeSpent: number;
   difficulty: "easy" | "medium" | "hard";
 }
@@ -33,7 +31,6 @@ const SpellingTest = () => {
   const [isTestComplete, setIsTestComplete] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Spelling test questions
   const questions: Question[] = [
     {
       word: "because",
@@ -85,7 +82,7 @@ const SpellingTest = () => {
   const speakWord = () => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(questions[currentQuestionIndex].word);
-      utterance.rate = 0.8; // Slow down the speech a bit
+      utterance.rate = 0.8;
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -95,17 +92,20 @@ const SpellingTest = () => {
     const correctAnswers = results.filter(r => r.isCorrect).length;
     const accuracy = (correctAnswers / totalQuestions) * 100;
     
-    // Calculate average time
     const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
     
-    // Analyze spelling patterns
-    const spellingErrors = results.filter(r => !r.isCorrect).map(r => ({
-      correct: r.correctAnswer,
-      user: r.userAnswer,
-      difficulty: r.difficulty
-    }));
+    const timeThresholds = {
+      easy: 15,
+      medium: 25,
+      hard: 35
+    };
     
-    // Dyslexia risk factors
+    const slowQuestions = results.filter(r => 
+      r.timeSpent > timeThresholds[r.difficulty]
+    ).length;
+    
+    const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
+    
     let riskFactors = [];
     let riskLevel = "Low";
     
@@ -113,69 +113,30 @@ const SpellingTest = () => {
       riskFactors.push("Difficulty with spelling");
     }
     
-    if (averageTime > 20) {
+    if (timeScore < 60) {
       riskFactors.push("Slower processing in spelling tasks");
     }
     
-    // Check for common dyslexic spelling patterns
-    let reversalErrors = 0;
-    let phonologicalErrors = 0;
+    const easyQuestionErrors = results.filter(r => 
+      r.difficulty === "easy" && !r.isCorrect
+    ).length;
     
-    spellingErrors.forEach(error => {
-      // Check for letter reversals (b/d, p/q)
-      if (
-        (error.correct.includes('b') && error.user.includes('d')) ||
-        (error.correct.includes('d') && error.user.includes('b')) ||
-        (error.correct.includes('p') && error.user.includes('q')) ||
-        (error.correct.includes('q') && error.user.includes('p'))
-      ) {
-        reversalErrors++;
-      }
-      
-      // Check for phonological errors (using phonetically similar letters)
-      // This is simplified - a real test would have more complex analysis
-      if (
-        (error.correct.includes('f') && error.user.includes('v')) ||
-        (error.correct.includes('s') && error.user.includes('z')) ||
-        (error.correct.includes('t') && error.user.includes('d'))
-      ) {
-        phonologicalErrors++;
-      }
-    });
-    
-    if (reversalErrors > 0) {
-      riskFactors.push("Letter reversal patterns");
+    if (easyQuestionErrors >= 1) {
+      riskFactors.push("Difficulty with basic spelling");
     }
     
-    if (phonologicalErrors > 0) {
-      riskFactors.push("Phonological encoding difficulties");
-    }
-    
-    // Calculate performance on easy vs. difficult spelling
-    const easyQuestions = results.filter(r => r.difficulty === "easy");
-    const easyAccuracy = easyQuestions.length > 0 ? 
-      easyQuestions.filter(r => r.isCorrect).length / easyQuestions.length * 100 : 100;
-    
-    if (easyAccuracy < 50) {
-      riskFactors.push("Difficulty with even simple spellings");
-    }
-    
-    // Determine risk level
-    if (riskFactors.length >= 3 || accuracy < 40) {
+    if (riskFactors.length >= 3 || (accuracy < 50 && timeScore < 50)) {
       riskLevel = "High";
-    } else if (riskFactors.length >= 2 || accuracy < 60) {
+    } else if (riskFactors.length >= 2 || accuracy < 65 || timeScore < 65) {
       riskLevel = "Moderate";
     }
     
     return {
       accuracy,
       averageTime,
-      spellingPatterns: {
-        reversalErrors,
-        phonologicalErrors
-      },
+      timeScore,
       riskFactors,
-      riskLevel,
+      riskLevel: riskLevel as "Low" | "Moderate" | "High",
       correctAnswers,
       totalQuestions
     };
@@ -184,19 +145,15 @@ const SpellingTest = () => {
   const handleCheck = () => {
     if (!startTime) return;
     
-    // Calculate time spent on this question
     const endTime = new Date();
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
     const currentWord = questions[currentQuestionIndex].word;
     const isCorrect = userInput.trim().toLowerCase() === currentWord.toLowerCase();
     
-    // Record result
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
       isCorrect,
-      userAnswer: userInput.trim(),
-      correctAnswer: currentWord,
       timeSpent,
       difficulty: questions[currentQuestionIndex].difficulty
     };
@@ -211,14 +168,12 @@ const SpellingTest = () => {
     } else {
       setIsTestComplete(true);
       
-      // Calculate comprehensive results
       const analysis = calculateDyslexiaRisk(newResults);
       
       const testResults = {
         test: "Spelling & Writing",
         ...analysis,
-        detailedResults: newResults,
-        questions
+        detailedResults: newResults
       };
       
       localStorage.setItem("testResults", JSON.stringify(testResults));

@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
 import { ArrowRight } from "lucide-react";
-import { useMemo } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 
 interface Question {
@@ -19,7 +18,7 @@ interface Question {
 
 interface TestResult {
   questionIndex: number;
-  score: number; // 0-100 percentage
+  isCorrect: boolean;
   timeSpent: number;
   difficulty: "easy" | "medium" | "hard";
 }
@@ -33,18 +32,17 @@ const SequencingTest = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [items, setItems] = useState<string[]>([]);
 
-  // Sequencing test questions
   const questions: Question[] = [
     {
       text: "Arrange these numbers in ascending order (smallest to largest):",
       options: ["7", "2", "9", "4", "1"],
-      correctOrder: [4, 1, 3, 0, 2], // indices of the correct order: 1,2,4,7,9
+      correctOrder: [4, 1, 3, 0, 2],
       difficulty: "easy"
     },
     {
       text: "Arrange these months in calendar order:",
       options: ["June", "January", "October", "March", "August"],
-      correctOrder: [1, 3, 0, 4, 2], // indices in correct order
+      correctOrder: [1, 3, 0, 4, 2],
       difficulty: "medium"
     },
     {
@@ -56,7 +54,7 @@ const SequencingTest = () => {
         "Fall of the Berlin Wall",
         "Industrial Revolution"
       ],
-      correctOrder: [2, 4, 0, 1, 3], // indices in correct order
+      correctOrder: [2, 4, 0, 1, 3],
       difficulty: "hard"
     },
     {
@@ -68,7 +66,7 @@ const SequencingTest = () => {
         "Spread butter or sauce",
         "Place the second slice on top"
       ],
-      correctOrder: [2, 3, 0, 4, 1], // indices in correct order
+      correctOrder: [2, 3, 0, 4, 1],
       difficulty: "medium"
     }
   ];
@@ -91,86 +89,86 @@ const SequencingTest = () => {
     setItems(reordered);
   };
 
-  const calculateScore = (userOrder: string[], question: Question): number => {
+  const calculateScore = (userOrder: string[], question: Question): boolean => {
     const correctOrder = question.correctOrder.map(idx => question.options[idx]);
     let score = 0;
     
-    // Check each position
     for (let i = 0; i < userOrder.length; i++) {
       if (userOrder[i] === correctOrder[i]) {
         score++;
       }
     }
     
-    return (score / userOrder.length) * 100;
+    return score >= correctOrder.length * 0.6;
   };
 
   const calculateDyslexiaRisk = (results: TestResult[]) => {
     const totalQuestions = results.length;
-    const averageScore = results.reduce((sum, r) => sum + r.score, 0) / totalQuestions;
+    const correctAnswers = results.filter(r => r.isCorrect).length;
+    const accuracy = (correctAnswers / totalQuestions) * 100;
     
-    // Calculate average time
     const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
     
-    // Dyslexia risk factors
+    const timeThresholds = {
+      easy: 30,
+      medium: 45,
+      hard: 60
+    };
+    
+    const slowQuestions = results.filter(r => 
+      r.timeSpent > timeThresholds[r.difficulty]
+    ).length;
+    
+    const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
+    
     let riskFactors = [];
     let riskLevel = "Low";
     
-    if (averageScore < 60) {
+    if (accuracy < 60) {
       riskFactors.push("Difficulty with sequencing tasks");
     }
     
-    if (averageTime > 45) {
+    if (timeScore < 60) {
       riskFactors.push("Slower processing in sequencing tasks");
     }
     
-    // Calculate performance on easy vs. difficult tasks
-    const easyTasks = results.filter(r => r.difficulty === "easy");
-    const hardTasks = results.filter(r => r.difficulty === "hard" || r.difficulty === "medium");
+    const easyQuestionErrors = results.filter(r => 
+      r.difficulty === "easy" && !r.isCorrect
+    ).length;
     
-    const avgEasyScore = easyTasks.length > 0 ? 
-      easyTasks.reduce((sum, r) => sum + r.score, 0) / easyTasks.length : 100;
-    
-    const avgHardScore = hardTasks.length > 0 ? 
-      hardTasks.reduce((sum, r) => sum + r.score, 0) / hardTasks.length : 100;
-    
-    if (avgEasyScore < 75) {
-      riskFactors.push("Difficulty with even simple sequencing");
+    if (easyQuestionErrors >= 1) {
+      riskFactors.push("Difficulty with basic sequencing");
     }
     
-    if (avgHardScore < 40) {
-      riskFactors.push("Significant difficulty with complex sequencing");
-    }
-    
-    // Determine risk level
-    if (riskFactors.length >= 3 || averageScore < 40) {
+    if (riskFactors.length >= 3 || (accuracy < 50 && timeScore < 50)) {
       riskLevel = "High";
-    } else if (riskFactors.length >= 2 || averageScore < 60) {
+    } else if (riskFactors.length >= 2 || accuracy < 65 || timeScore < 65) {
       riskLevel = "Moderate";
     }
     
     return {
-      averageScore,
+      accuracy,
       averageTime,
+      timeScore,
       riskFactors,
-      riskLevel
+      riskLevel: riskLevel as "Low" | "Moderate" | "High",
+      correctAnswers,
+      totalQuestions
     };
   };
 
   const handleCheck = () => {
     if (!startTime) return;
     
-    // Calculate time spent on this question
     const endTime = new Date();
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
     const question = questions[currentQuestionIndex];
-    const score = calculateScore(items, question);
+    const isCorrect = calculateScore(items, question);
     
-    // Record result
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
-      score,
+      isCorrect,
       timeSpent,
       difficulty: question.difficulty
     };
@@ -184,14 +182,12 @@ const SequencingTest = () => {
     } else {
       setIsTestComplete(true);
       
-      // Calculate comprehensive results
       const analysis = calculateDyslexiaRisk(newResults);
       
       const testResults = {
         test: "Sequencing",
         ...analysis,
-        detailedResults: newResults,
-        questions
+        detailedResults: newResults
       };
       
       localStorage.setItem("testResults", JSON.stringify(testResults));
