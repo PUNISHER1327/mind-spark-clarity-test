@@ -39,7 +39,7 @@ export const Navbar = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "py-3 bg-background/80 backdrop-blur-lg border-b" : "py-5"
+          isScrolled ? "py-3 bg-background/80 backdrop-blur-lg border-b" : "py-5 bg-background/60 backdrop-blur-sm"
         }`}
       >
         <div className="container flex items-center justify-between">
@@ -82,7 +82,7 @@ export const Navbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[60px] left-0 right-0 bg-background border-b z-40 md:hidden"
+            className="fixed top-[60px] left-0 right-0 bg-background/95 backdrop-blur-lg border-b z-40 md:hidden"
           >
             <nav className="container py-4 flex flex-col">
               {navLinks.map((link) => (

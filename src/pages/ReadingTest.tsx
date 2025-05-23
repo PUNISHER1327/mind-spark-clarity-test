@@ -12,84 +12,180 @@ interface Question {
   text: string;
   options: string[];
   correctAnswer: number;
+  difficulty: "easy" | "medium" | "hard";
+}
+
+interface TestResult {
+  questionIndex: number;
+  isCorrect: boolean;
+  timeSpent: number;
+  difficulty: "easy" | "medium" | "hard";
 }
 
 const ReadingTest = () => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [timeStarted, setTimeStarted] = useState<Date | null>(null);
-  const [readingTimes, setReadingTimes] = useState<number[]>([]);
-  const [correctAnswers, setCorrectAnswers] = useState<number>(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [results, setResults] = useState<TestResult[]>([]);
   const [isTestComplete, setIsTestComplete] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Sample questions for the reading test
+  // Enhanced questions with varying difficulty levels
   const questions: Question[] = [
     {
       text: "The cat sat on the mat. The dog barked at the cat. The cat jumped off the mat and ran away. Where did the cat sit?",
       options: ["On the chair", "On the mat", "On the floor", "On the table"],
-      correctAnswer: 1
+      correctAnswer: 1,
+      difficulty: "easy"
     },
     {
-      text: "Tom likes to play soccer. He plays every Saturday with his friends. They meet at the park at 2:00 PM. What sport does Tom play?",
+      text: "Sarah went to the grocery store to buy ingredients for dinner. She needed tomatoes, onions, cheese, and bread. At the store, she remembered everything except one item. She forgot to buy cheese. What did Sarah forget?",
+      options: ["Tomatoes", "Onions", "Cheese", "Bread"],
+      correctAnswer: 2,
+      difficulty: "medium"
+    },
+    {
+      text: "The research conducted by Dr. Martinez demonstrated that cognitive flexibility significantly improves when individuals engage in multidisciplinary learning approaches. The study examined participants over a six-month period, analyzing their problem-solving capabilities. What was the main finding of Dr. Martinez's research?",
+      options: [
+        "Learning approaches don't affect cognitive flexibility",
+        "Cognitive flexibility improves with multidisciplinary learning",
+        "Problem-solving capabilities decrease over time",
+        "Six-month studies are ineffective"
+      ],
+      correctAnswer: 1,
+      difficulty: "hard"
+    },
+    {
+      text: "Tom likes to play soccer every Saturday with his friends at the local park. They usually meet at 2:00 PM and play until 4:00 PM. What sport does Tom play?",
       options: ["Basketball", "Tennis", "Soccer", "Baseball"],
-      correctAnswer: 2
+      correctAnswer: 2,
+      difficulty: "easy"
     },
     {
-      text: "Sarah went to the store. She bought milk, bread, and eggs. She forgot to buy cheese. What did Sarah forget to buy?",
-      options: ["Milk", "Bread", "Eggs", "Cheese"],
-      correctAnswer: 3
+      text: "The environmental impact assessment revealed that the proposed construction project would affect three major ecosystems: wetlands, grasslands, and forest areas. The wetlands showed the highest vulnerability to disruption, while the grasslands demonstrated moderate resilience. Which ecosystem was most vulnerable?",
+      options: ["Forest areas", "Wetlands", "Grasslands", "All equally vulnerable"],
+      correctAnswer: 1,
+      difficulty: "hard"
     },
     {
-      text: "The red car stopped at the traffic light. The light turned green. The car moved forward. What color was the car?",
-      options: ["Blue", "Green", "Red", "Yellow"],
-      correctAnswer: 2
-    },
-    {
-      text: "John has three apples. He gave one apple to his friend. How many apples does John have now?",
-      options: ["One", "Two", "Three", "Four"],
-      correctAnswer: 1
+      text: "During the school festival, Maria's class organized a bake sale. They sold cookies, cupcakes, and brownies. The cookies were $2 each, cupcakes were $3 each, and brownies were $4 each. If they sold 10 cookies, 8 cupcakes, and 5 brownies, how much money did they make from cookies?",
+      options: ["$15", "$20", "$24", "$44"],
+      correctAnswer: 1,
+      difficulty: "medium"
     }
   ];
 
   useEffect(() => {
     setIsLoaded(true);
-    setTimeStarted(new Date());
+    setStartTime(new Date());
   }, []);
 
   const handleOptionSelect = (optionIndex: number) => {
     setSelectedOption(optionIndex);
   };
 
-  const handleNextQuestion = () => {
-    // Calculate reading time
-    if (timeStarted) {
-      const now = new Date();
-      const readingTime = (now.getTime() - timeStarted.getTime()) / 1000;
-      setReadingTimes([...readingTimes, readingTime]);
+  const calculateDyslexiaRisk = (results: TestResult[]) => {
+    const totalQuestions = results.length;
+    const correctAnswers = results.filter(r => r.isCorrect).length;
+    const accuracy = (correctAnswers / totalQuestions) * 100;
+    
+    // Calculate average reading time
+    const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
+    
+    // Time thresholds (in seconds) based on difficulty
+    const timeThresholds = {
+      easy: 15,    // Easy questions should take < 15 seconds
+      medium: 25,  // Medium questions should take < 25 seconds  
+      hard: 40     // Hard questions should take < 40 seconds
+    };
+    
+    // Calculate time score - how many questions took too long
+    const slowQuestions = results.filter(r => 
+      r.timeSpent > timeThresholds[r.difficulty]
+    ).length;
+    
+    const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
+    
+    // Dyslexia risk factors
+    let riskFactors = [];
+    let riskLevel = "Low";
+    
+    if (accuracy < 60) {
+      riskFactors.push("Low reading comprehension accuracy");
     }
+    
+    if (timeScore < 60) {
+      riskFactors.push("Slower than typical reading speed");
+    }
+    
+    if (averageTime > 30) {
+      riskFactors.push("Extended processing time per question");
+    }
+    
+    // Calculate overall risk
+    const easyQuestionErrors = results.filter(r => 
+      r.difficulty === "easy" && !r.isCorrect
+    ).length;
+    
+    if (easyQuestionErrors >= 2) {
+      riskFactors.push("Difficulty with basic reading comprehension");
+    }
+    
+    // Determine risk level
+    if (riskFactors.length >= 3 || (accuracy < 50 && timeScore < 50)) {
+      riskLevel = "High";
+    } else if (riskFactors.length >= 2 || accuracy < 65 || timeScore < 65) {
+      riskLevel = "Moderate";
+    }
+    
+    return {
+      accuracy,
+      averageTime,
+      timeScore,
+      riskFactors,
+      riskLevel,
+      correctAnswers,
+      totalQuestions
+    };
+  };
 
-    // Check if answer is correct
-    if (selectedOption === questions[currentQuestionIndex].correctAnswer) {
-      setCorrectAnswers(correctAnswers + 1);
-    }
+  const handleNextQuestion = () => {
+    if (!startTime) return;
+    
+    // Calculate time spent on this question
+    const endTime = new Date();
+    const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
+    
+    // Record result
+    const result: TestResult = {
+      questionIndex: currentQuestionIndex,
+      isCorrect: selectedOption === questions[currentQuestionIndex].correctAnswer,
+      timeSpent,
+      difficulty: questions[currentQuestionIndex].difficulty
+    };
+    
+    const newResults = [...results, result];
+    setResults(newResults);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(null);
-      setTimeStarted(new Date());
+      setStartTime(new Date());
     } else {
       setIsTestComplete(true);
       
-      // Store results in localStorage for the results page
-      const results = {
+      // Calculate comprehensive results with dyslexia analysis
+      const analysis = calculateDyslexiaRisk(newResults);
+      
+      const testResults = {
         test: "Reading Fluency",
-        correctAnswers,
-        totalQuestions: questions.length,
-        averageReadingTime: readingTimes.reduce((a, b) => a + b, 0) / readingTimes.length
+        ...analysis,
+        detailedResults: newResults,
+        questions: questions
       };
-      localStorage.setItem("testResults", JSON.stringify(results));
+      
+      localStorage.setItem("testResults", JSON.stringify(testResults));
     }
   };
 
@@ -177,7 +273,7 @@ const ReadingTest = () => {
               
               <h2 className="text-2xl font-bold mb-2">Test Completed!</h2>
               <p className="text-muted-foreground mb-6">
-                Thank you for completing the Reading Fluency test.
+                Thank you for completing the Reading Fluency test. Your detailed analysis is ready.
               </p>
               
               <Button onClick={handleViewResults} className="gap-2">

@@ -1,322 +1,138 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Navbar } from "@/components/Navbar";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
-import { ReadTextButton, useAccessibility } from "@/components/AccessibilitySettings";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, BookOpen, MessageSquare, HeartHandshake, Lightbulb, BookText, School, Globe } from "lucide-react";
+import { BookOpen, Users, Phone, Mail, ExternalLink, Heart, Brain, Lightbulb } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const SupportResourcesPage: React.FC = () => {
-  const { settings } = useAccessibility();
-  const animationsDisabled = settings.disableAnimations;
+const SupportResourcesPage = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  const resources = [
+    {
+      title: "Educational Resources",
+      icon: BookOpen,
+      items: [
+        "Understanding Dyslexia: Complete Guide",
+        "Teaching Strategies for Dyslexic Students",
+        "Assistive Technology Tools",
+        "Reading Comprehension Techniques"
+      ]
+    },
+    {
+      title: "Support Communities",
+      icon: Users,
+      items: [
+        "Dyslexia Support Groups",
+        "Parent Networks",
+        "Student Forums",
+        "Professional Educator Communities"
+      ]
+    },
+    {
+      title: "Professional Help",
+      icon: Brain,
+      items: [
+        "Find Educational Psychologists",
+        "Specialized Tutors Directory",
+        "Speech Therapy Services",
+        "Learning Disability Assessment Centers"
+      ]
     }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
-
-  // Resource card component
-  const ResourceCard = ({ 
-    title, 
-    description, 
-    icon: Icon, 
-    links 
-  }: { 
-    title: string; 
-    description: string; 
-    icon: any; 
-    links: { text: string; url: string }[] 
-  }) => (
-    <motion.div variants={animationsDisabled ? {} : itemVariants}>
-      <Card className="h-full">
-        <CardHeader>
-          <div className="flex items-start">
-            <div className="bg-primary/10 p-2 rounded-full mr-4">
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{title}</CardTitle>
-              <CardDescription className="mt-2">{description}</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {links.map((link, index) => (
-              <Button 
-                key={index} 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-between"
-                asChild
-              >
-                <a 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  <span>{link.text}</span>
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </a>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
+  ];
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <div className="text-center mb-12">
-        <AnimatedHeading className="text-4xl font-bold mb-4">
-          Dyslexia Support Resources
-        </AnimatedHeading>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          We've gathered helpful resources to support your journey with dyslexia. 
-          Whether you're looking for information, tools, or community support, 
-          you'll find valuable guidance here.
-        </p>
+    <div className="min-h-screen bg-background relative">
+      <Navbar />
+      
+      <div className="absolute inset-0 -z-10 bg-grid"></div>
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
+      
+      <div className="container mx-auto pt-32 pb-20 px-4 md:pt-40 relative z-0">
+        <div className={`max-w-5xl mx-auto transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className="text-center mb-12">
+            <AnimatedHeading delay={200} className="text-4xl md:text-5xl font-bold mb-6">
+              Support & Resources
+            </AnimatedHeading>
+            
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Find comprehensive support, educational resources, and professional help for dyslexia management and improvement.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {resources.map((resource, index) => (
+              <Card key={index} className="glass">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                    <resource.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">{resource.title}</h3>
+                  <ul className="space-y-2">
+                    {resource.items.map((item, itemIndex) => (
+                      <li key={itemIndex} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 rounded-full p-2 bg-blue-100 text-blue-600">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">24/7 Support Hotline</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Get immediate support and guidance from trained professionals.
+                    </p>
+                    <p className="font-medium">1-800-DYSLEXIA</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 rounded-full p-2 bg-green-100 text-green-600">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">Email Support</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Reach out with questions or concerns via email.
+                    </p>
+                    <p className="font-medium">support@dyslexiatest.com</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button size="lg" className="gap-2 rounded-full px-6" asChild>
+              <Link to="/improve">
+                Start Improvement Activities
+                <Lightbulb className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
-
-      <Tabs defaultValue="educational" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
-          <TabsTrigger value="educational">Educational</TabsTrigger>
-          <TabsTrigger value="communities">Communities</TabsTrigger>
-          <TabsTrigger value="tools">Tools & Apps</TabsTrigger>
-          <TabsTrigger value="professional">Professional Help</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="educational">
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            variants={containerVariants}
-            initial={animationsDisabled ? "visible" : "hidden"}
-            animate="visible"
-          >
-            <ResourceCard
-              title="Understanding Dyslexia"
-              description="Comprehensive guides to help you understand dyslexia and how it affects learning."
-              icon={BookOpen}
-              links={[
-                { text: "International Dyslexia Association", url: "https://dyslexiaida.org/" },
-                { text: "Yale Center for Dyslexia", url: "https://dyslexia.yale.edu/" },
-                { text: "Understood.org's Dyslexia Guide", url: "https://www.understood.org/en/learning-thinking-differences/child-learning-disabilities/dyslexia/understanding-dyslexia" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Educational Strategies"
-              description="Evidence-based approaches to support learning for people with dyslexia."
-              icon={School}
-              links={[
-                { text: "Orton-Gillingham Approach", url: "https://www.ortonacademy.org/resources/what-is-the-orton-gillingham-approach/" },
-                { text: "Reading Rockets Dyslexia Resources", url: "https://www.readingrockets.org/reading-topics/dyslexia" },
-                { text: "Structured Literacy Explained", url: "https://dyslexiaida.org/what-is-structured-literacy/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Research & Articles"
-              description="Stay updated with the latest research and findings in dyslexia studies."
-              icon={BookText}
-              links={[
-                { text: "Dyslexia Research Institute", url: "https://www.dyslexia-research-institute.org/" },
-                { text: "Science Daily: Dyslexia News", url: "https://www.sciencedaily.com/news/mind_brain/dyslexia/" },
-                { text: "Journal of Learning Disabilities", url: "https://journals.sagepub.com/home/ldx" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Success Stories"
-              description="Inspirational stories of well-known individuals who have thrived with dyslexia."
-              icon={Lightbulb}
-              links={[
-                { text: "Made By Dyslexia", url: "https://www.madebydyslexia.org/" },
-                { text: "Famous People with Dyslexia", url: "https://dyslexia.yale.edu/dyslexia/famous-people-with-dyslexia/" },
-                { text: "Dyslexic Advantage Profiles", url: "https://www.dyslexicadvantage.org/category/dyslexic-profiles/" }
-              ]}
-            />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="communities">
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            variants={containerVariants}
-            initial={animationsDisabled ? "visible" : "hidden"}
-            animate="visible"
-          >
-            <ResourceCard
-              title="Online Forums & Groups"
-              description="Connect with others who understand dyslexia through shared experiences."
-              icon={MessageSquare}
-              links={[
-                { text: "Reddit r/Dyslexia Community", url: "https://www.reddit.com/r/Dyslexia/" },
-                { text: "Dyslexia Support Group on Facebook", url: "https://www.facebook.com/groups/dyslexiasupportgroup/" },
-                { text: "Understood.org Community", url: "https://www.understood.org/community" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Support Organizations"
-              description="Organizations dedicated to helping people with dyslexia and their families."
-              icon={HeartHandshake}
-              links={[
-                { text: "National Center for Learning Disabilities", url: "https://www.ncld.org/" },
-                { text: "Dyslexia Action", url: "https://www.dyslexiaaction.org.uk/" },
-                { text: "British Dyslexia Association", url: "https://www.bdadyslexia.org.uk/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Parent Resources"
-              description="Special resources for parents of children with dyslexia."
-              icon={HeartHandshake}
-              links={[
-                { text: "Parents' Guide to Dyslexia", url: "https://www.readingrockets.org/reading-topics/dyslexia/parents" },
-                { text: "Decoding Dyslexia", url: "https://decodingdyslexia.net/" },
-                { text: "Parent Toolkit by Understood", url: "https://www.understood.org/en/learning-thinking-differences/child-learning-disabilities/dyslexia/dyslexia-resources" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Global Support Networks"
-              description="International organizations and resources for dyslexia support."
-              icon={Globe}
-              links={[
-                { text: "European Dyslexia Association", url: "https://www.eda-info.eu/" },
-                { text: "Australian Dyslexia Association", url: "https://dyslexiaassociation.org.au/" },
-                { text: "Dyslexia Canada", url: "https://www.dyslexiacanada.org/" }
-              ]}
-            />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="tools">
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            variants={containerVariants}
-            initial={animationsDisabled ? "visible" : "hidden"}
-            animate="visible"
-          >
-            <ResourceCard
-              title="Reading Assistance"
-              description="Tools that help make reading easier for people with dyslexia."
-              icon={BookOpen}
-              links={[
-                { text: "OpenDyslexic Font", url: "https://opendyslexic.org/" },
-                { text: "Readability - Text to Speech", url: "https://www.readabilityapp.com/" },
-                { text: "Natural Reader", url: "https://www.naturalreaders.com/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Writing Support"
-              description="Applications that assist with writing challenges associated with dyslexia."
-              icon={Lightbulb}
-              links={[
-                { text: "Grammarly", url: "https://www.grammarly.com/" },
-                { text: "Co:Writer", url: "https://cowriter.com/" },
-                { text: "Speechify", url: "https://speechify.com/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Learning Apps"
-              description="Interactive applications designed specifically for dyslexic learners."
-              icon={School}
-              links={[
-                { text: "Nessy Learning", url: "https://www.nessy.com/" },
-                { text: "Dyslexia Quest", url: "https://www.nessy.com/us/apps/dyslexia-quest/" },
-                { text: "GraphoGame", url: "https://graphogame.com/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Productivity Tools"
-              description="General tools that can be particularly helpful for people with dyslexia."
-              icon={Lightbulb}
-              links={[
-                { text: "Microsoft Learning Tools", url: "https://www.microsoft.com/en-us/education/products/learning-tools" },
-                { text: "HelperBird", url: "https://www.helperbird.com/" },
-                { text: "Notability", url: "https://notability.com/" }
-              ]}
-            />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="professional">
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            variants={containerVariants}
-            initial={animationsDisabled ? "visible" : "hidden"}
-            animate="visible"
-          >
-            <ResourceCard
-              title="Finding Specialists"
-              description="How to find qualified professionals who can help with dyslexia."
-              icon={HeartHandshake}
-              links={[
-                { text: "IDA Provider Directory", url: "https://dyslexiaida.org/provider-directories/" },
-                { text: "Learning Disability Specialists", url: "https://www.psychologytoday.com/us/therapists/learning-disabilities" },
-                { text: "Educational Psychologists", url: "https://www.nasponline.org/research-and-policy/advocacy/find-a-state-association" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Educational Advocacy"
-              description="Resources for advocating for appropriate educational support."
-              icon={School}
-              links={[
-                { text: "Wrightslaw Special Education Law", url: "https://www.wrightslaw.com/" },
-                { text: "Understood's IEP Guide", url: "https://www.understood.org/en/school-learning/special-services/ieps/understanding-individualized-education-programs" },
-                { text: "LD Online Advocacy Resources", url: "https://www.ldonline.org/ld-topics/advocacy" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Therapeutic Approaches"
-              description="Information on different therapy and intervention methods for dyslexia."
-              icon={HeartHandshake}
-              links={[
-                { text: "Orton-Gillingham Practitioners", url: "https://www.ortonacademy.org/accreditation/aogpe-members/" },
-                { text: "Wilson Reading System", url: "https://www.wilsonlanguage.com/programs/wilson-reading-system/" },
-                { text: "Davis Dyslexia Methods", url: "https://www.dyslexia.com/" }
-              ]}
-            />
-
-            <ResourceCard
-              title="Assessment Information"
-              description="Understanding professional dyslexia assessment and diagnosis."
-              icon={BookOpen}
-              links={[
-                { text: "Understanding Dyslexia Evaluation", url: "https://www.understood.org/en/school-learning/evaluations/evaluation-basics/dyslexia-evaluations-what-you-need-to-know" },
-                { text: "Types of Reading Assessments", url: "https://www.readingrockets.org/teaching/reading-basics/assessment" },
-                { text: "What to Expect in Testing", url: "https://dyslexiaida.org/testing-and-evaluation/" }
-              ]}
-            />
-          </motion.div>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

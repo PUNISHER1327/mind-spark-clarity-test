@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, Volume2 } from "lucide-react";
@@ -47,6 +46,7 @@ export const AccessibilityContext = React.createContext<{
   rulerHeight: number;
   updateRulerHeight: (height: number) => void;
   isReading: boolean;
+  readTextUnderRuler: () => void;
 }>({
   settings: defaultSettings,
   updateSettings: () => {},
@@ -55,6 +55,7 @@ export const AccessibilityContext = React.createContext<{
   rulerHeight: 60,
   updateRulerHeight: () => {},
   isReading: false,
+  readTextUnderRuler: () => {},
 });
 
 export const useAccessibility = () => React.useContext(AccessibilityContext);
@@ -67,6 +68,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isReading, setIsReading] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+  const [rulerPosition, setRulerPosition] = useState(300);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -153,18 +155,27 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const readText = (text: string) => {
-    if (speechSynthesis) {
+    if (speechSynthesis && settings.textToSpeech) {
       // Stop any current reading
       stopReading();
       
       // Create new utterance
       const newUtterance = new SpeechSynthesisUtterance(text);
+      newUtterance.rate = 0.8; // Slower rate for dyslexic users
+      newUtterance.pitch = 1;
+      newUtterance.volume = 1;
+      
       setUtterance(newUtterance);
       setIsReading(true);
       
       // Set up event handlers
       newUtterance.onend = () => {
         setIsReading(false);
+      };
+      
+      newUtterance.onerror = () => {
+        setIsReading(false);
+        console.error("Speech synthesis error");
       };
       
       // Start speaking
@@ -179,6 +190,29 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const readTextUnderRuler = () => {
+    if (!settings.textToSpeech || !settings.readingRuler) return;
+
+    // Get all text elements at the ruler position
+    const elements = document.elementsFromPoint(window.innerWidth / 2, rulerPosition);
+    let textToRead = "";
+
+    for (const element of elements) {
+      if (element.textContent && element.textContent.trim()) {
+        // Extract text from the line under the ruler
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= rulerPosition && rect.bottom >= rulerPosition) {
+          textToRead = element.textContent.trim();
+          break;
+        }
+      }
+    }
+
+    if (textToRead) {
+      readText(textToRead);
+    }
+  };
+
   return (
     <AccessibilityContext.Provider
       value={{
@@ -189,6 +223,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
         rulerHeight,
         updateRulerHeight,
         isReading,
+        readTextUnderRuler,
       }}
     >
       {children}
@@ -377,7 +412,7 @@ export const AccessibilitySettings = () => {
 };
 
 export const ReadingRuler = () => {
-  const { settings, rulerHeight } = useAccessibility();
+  const { settings, rulerHeight, readTextUnderRuler } = useAccessibility();
   const [position, setPosition] = useState(300);
 
   useEffect(() => {
@@ -387,17 +422,26 @@ export const ReadingRuler = () => {
       setPosition(e.clientY);
     };
 
+    const handleClick = () => {
+      if (settings.textToSpeech) {
+        readTextUnderRuler();
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("click", handleClick);
+    
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("click", handleClick);
     };
-  }, [settings.readingRuler]);
+  }, [settings.readingRuler, settings.textToSpeech, readTextUnderRuler]);
 
   if (!settings.readingRuler) return null;
 
   return (
     <motion.div
-      className="fixed left-0 w-full z-40 pointer-events-none bg-primary/10"
+      className="fixed left-0 w-full z-40 pointer-events-none bg-primary/10 cursor-pointer"
       style={{
         height: rulerHeight,
         top: position - rulerHeight / 2,

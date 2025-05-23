@@ -5,13 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
-import { ArrowRight, Info, Check, AlertCircle } from "lucide-react";
+import { ArrowRight, Info, Check, AlertCircle, Clock, Target, Brain } from "lucide-react";
 
 interface TestResults {
   test: string;
+  accuracy: number;
+  averageTime: number;
+  timeScore: number;
+  riskFactors: string[];
+  riskLevel: "Low" | "Moderate" | "High";
   correctAnswers: number;
   totalQuestions: number;
-  averageReadingTime: number;
+  detailedResults?: Array<{
+    questionIndex: number;
+    isCorrect: boolean;
+    timeSpent: number;
+    difficulty: string;
+  }>;
 }
 
 const Results = () => {
@@ -27,18 +37,41 @@ const Results = () => {
     setIsLoaded(true);
   }, []);
 
-  // Calculate score percentage
-  const scorePercentage = results ? (results.correctAnswers / results.totalQuestions) * 100 : 0;
-  
-  // Determine if reading time suggests potential dyslexia
-  // (Note: This is simplified and not scientifically validated)
-  const isReadingTimeSlow = results ? results.averageReadingTime > 8 : false;
-  
-  // Determine if score suggests potential dyslexia
-  const isScoreLow = scorePercentage < 60;
-  
-  // Determine if results suggest potential signs of dyslexia
-  const showsSignsOfDyslexia = isReadingTimeSlow || isScoreLow;
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "High": return "text-red-600 bg-red-100 border-red-300";
+      case "Moderate": return "text-amber-600 bg-amber-100 border-amber-300";
+      default: return "text-green-600 bg-green-100 border-green-300";
+    }
+  };
+
+  const getRiskIcon = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "High": return AlertCircle;
+      case "Moderate": return Clock;
+      default: return Check;
+    }
+  };
+
+  const getDyslexiaMessage = (riskLevel: string, riskFactors: string[]) => {
+    switch (riskLevel) {
+      case "High":
+        return {
+          title: "High Indication of Dyslexia",
+          message: "Your test results show several patterns commonly associated with dyslexia. We strongly recommend consulting with a learning specialist or educational psychologist for a comprehensive evaluation."
+        };
+      case "Moderate":
+        return {
+          title: "Moderate Signs of Reading Difficulties",
+          message: "Your results suggest some challenges that may be related to dyslexia. Consider discussing these findings with an educational professional who can provide more detailed assessment."
+        };
+      default:
+        return {
+          title: "Low Indication of Dyslexia",
+          message: "Your test performance shows good reading comprehension and processing speed. However, if you continue to experience reading difficulties, professional evaluation may still be beneficial."
+        };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -48,145 +81,174 @@ const Results = () => {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
       
       <div className="container mx-auto pt-32 pb-20 px-4 md:pt-40 relative z-0">
-        <div className={`max-w-4xl mx-auto transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div className={`max-w-5xl mx-auto transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="text-center mb-12">
             <AnimatedHeading delay={200} className="text-3xl md:text-4xl font-bold mb-4">
-              Your Test Results
+              Your Detailed Test Analysis
             </AnimatedHeading>
             {results && (
               <p className="text-lg text-muted-foreground">
-                {results.test} Test Results
+                {results.test} - Comprehensive Results & Dyslexia Assessment
               </p>
             )}
           </div>
           
           {results ? (
-            <div className="grid gap-8 md:grid-cols-2">
-              <Card className="glass overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="p-6 md:p-8">
-                    <h3 className="text-xl font-bold mb-6">Test Performance</h3>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Accuracy</span>
-                          <span className="font-medium">
-                            {results.correctAnswers} of {results.totalQuestions} correct
-                          </span>
-                        </div>
-                        <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                            style={{ width: `${scorePercentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Reading Speed</span>
-                          <span className="font-medium">
-                            {results.averageReadingTime.toFixed(1)} seconds per question
-                          </span>
-                        </div>
-                        <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              isReadingTimeSlow ? "bg-amber-500" : "bg-green-500"
-                            }`}
-                            style={{ width: `${Math.min(100, (results.averageReadingTime / 15) * 100)}%` }}
-                          ></div>
-                        </div>
-                      </div>
+            <div className="space-y-8">
+              {/* Dyslexia Risk Assessment */}
+              <Card className={`border-2 ${getRiskColor(results.riskLevel)}`}>
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    <div className={`flex-shrink-0 rounded-full p-3 ${getRiskColor(results.riskLevel)}`}>
+                      {React.createElement(getRiskIcon(results.riskLevel), { className: "h-6 w-6" })}
                     </div>
-                  </div>
-                  
-                  <div className="p-6 md:p-8 border-t">
-                    <h3 className="font-medium mb-2">Performance Summary</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {scorePercentage >= 80 ? (
-                        "Your accuracy was excellent! You demonstrated strong reading comprehension skills."
-                      ) : scorePercentage >= 60 ? (
-                        "Your accuracy was good. You showed solid reading comprehension."
-                      ) : (
-                        "Your accuracy suggests some difficulty with reading comprehension, which is common in individuals with dyslexia."
-                      )}
-                    </p>
-                    
-                    <div className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        {!isReadingTimeSlow ? (
-                          "Your reading speed was within the typical range."
-                        ) : (
-                          "Your reading speed was slower than typical, which can be associated with dyslexia."
-                        )}
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold mb-2">
+                        {getDyslexiaMessage(results.riskLevel, results.riskFactors).title}
+                      </h3>
+                      <p className="text-sm mb-4">
+                        {getDyslexiaMessage(results.riskLevel, results.riskFactors).message}
                       </p>
+                      
+                      {results.riskFactors.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Identified Factors:</h4>
+                          <ul className="text-sm space-y-1">
+                            {results.riskFactors.map((factor, index) => (
+                              <li key={index} className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-current rounded-full"></div>
+                                {factor}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <div className="space-y-8">
-                <Card className={`border-l-4 ${showsSignsOfDyslexia ? "border-l-amber-500" : "border-l-green-500"}`}>
+
+              {/* Performance Metrics */}
+              <div className="grid md:grid-cols-3 gap-6">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Target className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-primary">{results.accuracy.toFixed(1)}%</h3>
+                    <p className="text-sm text-muted-foreground">Reading Accuracy</p>
+                    <p className="text-xs mt-2">
+                      {results.correctAnswers} of {results.totalQuestions} correct
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Clock className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-blue-600">{results.averageTime.toFixed(1)}s</h3>
+                    <p className="text-sm text-muted-foreground">Average Time</p>
+                    <p className="text-xs mt-2">Per question</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Brain className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-purple-600">{results.timeScore.toFixed(1)}%</h3>
+                    <p className="text-sm text-muted-foreground">Processing Speed</p>
+                    <p className="text-xs mt-2">Compared to typical</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Question Analysis */}
+              {results.detailedResults && (
+                <Card>
                   <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className={`flex-shrink-0 rounded-full p-2 ${showsSignsOfDyslexia ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"}`}>
-                        {showsSignsOfDyslexia ? (
-                          <AlertCircle className="h-5 w-5" />
-                        ) : (
-                          <Check className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg mb-2">
-                          {showsSignsOfDyslexia ? (
-                            "Possible Signs of Dyslexia Detected"
-                          ) : (
-                            "No Strong Signs of Dyslexia Detected"
-                          )}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {showsSignsOfDyslexia ? (
-                            "Your test results suggest some patterns commonly associated with dyslexia. This is not a diagnosis, but you may want to consider a professional assessment."
-                          ) : (
-                            "Your test performance does not strongly indicate dyslexia. However, if you're experiencing persistent difficulties with reading or writing, consider consulting a specialist."
-                          )}
-                        </p>
-                      </div>
+                    <h3 className="text-xl font-bold mb-4">Question-by-Question Analysis</h3>
+                    <div className="space-y-3">
+                      {results.detailedResults.map((result, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              result.isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                Question {index + 1} - {result.difficulty} difficulty
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {result.isCorrect ? 'Correct' : 'Incorrect'} in {result.timeSpent.toFixed(1)}s
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            result.timeSpent > 30 ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'
+                          }`}>
+                            {result.timeSpent > 30 ? 'Slow' : 'Good pace'}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 rounded-full p-2 bg-blue-100 text-blue-600">
-                        <Info className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg mb-2">What Next?</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Our screening tests provide initial insights but are not diagnostic. To get a comprehensive assessment:
-                        </p>
-                        <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-4 mb-4">
-                          <li>Consult with an educational psychologist or dyslexia specialist</li>
-                          <li>Discuss your results with a healthcare provider</li>
-                          <li>Consider taking additional screening tests</li>
-                        </ul>
+              )}
+
+              {/* Next Steps */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 rounded-full p-2 bg-blue-100 text-blue-600">
+                      <Info className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">Recommended Next Steps</h3>
+                      <div className="space-y-3">
+                        {results.riskLevel === "High" && (
+                          <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <p className="text-sm font-medium text-red-800 mb-2">Immediate Recommendations:</p>
+                            <ul className="text-sm text-red-700 space-y-1 list-disc pl-4">
+                              <li>Schedule an appointment with an educational psychologist</li>
+                              <li>Contact your local dyslexia association for resources</li>
+                              <li>Explore our improvement activities for immediate support</li>
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {results.riskLevel === "Moderate" && (
+                          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <p className="text-sm font-medium text-amber-800 mb-2">Suggested Actions:</p>
+                            <ul className="text-sm text-amber-700 space-y-1 list-disc pl-4">
+                              <li>Consider professional assessment for detailed evaluation</li>
+                              <li>Try our dyslexia improvement exercises</li>
+                              <li>Use reading aids and accessibility tools</li>
+                            </ul>
+                          </div>
+                        )}
+
                         <div className="flex gap-3 mt-4">
                           <Button size="sm" variant="outline" asChild>
-                            <Link to="/about">Learn More</Link>
+                            <Link to="/about">Learn More About Dyslexia</Link>
                           </Button>
                           <Button size="sm" asChild>
-                            <Link to="/tests">Try Another Test</Link>
+                            <Link to="/improve">Try Improvement Activities</Link>
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link to="/tests">Take Another Test</Link>
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <Card className="p-8 text-center">
