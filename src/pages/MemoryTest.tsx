@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,12 +14,12 @@ interface Question {
   correctAnswer?: string[];
   difficulty: "easy" | "medium" | "hard";
   instructions: string;
-  duration: number; // seconds to memorize
+  duration: number;
 }
 
 interface TestResult {
   questionIndex: number;
-  score: number; // 0-100 percentage correct
+  isCorrect: boolean;
   timeSpent: number;
   difficulty: "easy" | "medium" | "hard";
 }
@@ -114,7 +113,7 @@ const MemoryTest = () => {
     setUserInputs(newInputs);
   };
 
-  const calculateScore = (question: Question, answers: string[]): number => {
+  const calculateScore = (question: Question, answers: string[]): boolean => {
     const cleanAnswers = answers.filter(a => a.trim() !== "");
     
     if (question.type === "sequence") {
@@ -128,9 +127,8 @@ const MemoryTest = () => {
         }
       }
       
-      return (score / correctAnswers.length) * 100;
+      return score >= correctAnswers.length * 0.6; // 60% threshold
     } else if (question.type === "recall") {
-      // For recall, check how many words were correctly remembered
       const correctContent = question.content.map(item => item.toLowerCase());
       let correctCount = 0;
       
@@ -140,28 +138,82 @@ const MemoryTest = () => {
         }
       }
       
-      // Calculate score based on how many correct items were recalled
-      // If got all, 100%. If got half, 50%.
-      return Math.min((correctCount / question.content.length) * 100, 100);
+      return correctCount >= question.content.length * 0.5; // 50% threshold
     }
     
-    return 0;
+    return false;
   };
   
+  const calculateDyslexiaRisk = (results: TestResult[]) => {
+    const totalQuestions = results.length;
+    const correctAnswers = results.filter(r => r.isCorrect).length;
+    const accuracy = (correctAnswers / totalQuestions) * 100;
+    
+    const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
+    
+    const timeThresholds = {
+      easy: 20,
+      medium: 35,
+      hard: 50
+    };
+    
+    const slowQuestions = results.filter(r => 
+      r.timeSpent > timeThresholds[r.difficulty]
+    ).length;
+    
+    const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
+    
+    let riskFactors = [];
+    let riskLevel = "Low";
+    
+    if (accuracy < 50) {
+      riskFactors.push("Difficulty with working memory tasks");
+    }
+    
+    if (timeScore < 60) {
+      riskFactors.push("Slower processing in memory recall tasks");
+    }
+    
+    const sequenceTaskScores = results.filter((_, i) => 
+      questions[i].type === "sequence"
+    );
+    
+    const sequenceAccuracy = sequenceTaskScores.length > 0 ? 
+      (sequenceTaskScores.filter(r => r.isCorrect).length / sequenceTaskScores.length) * 100 : 100;
+    
+    if (sequenceAccuracy < 40) {
+      riskFactors.push("Significant difficulty with sequential memory");
+    }
+    
+    if (riskFactors.length >= 2 || accuracy < 30) {
+      riskLevel = "High";
+    } else if (riskFactors.length >= 1 || accuracy < 50) {
+      riskLevel = "Moderate";
+    }
+    
+    return {
+      accuracy,
+      averageTime,
+      timeScore,
+      riskFactors,
+      riskLevel: riskLevel as "Low" | "Moderate" | "High",
+      correctAnswers,
+      totalQuestions
+    };
+  };
+
   const handleCheck = () => {
     if (!startTime) return;
     
-    // Calculate time spent on this question
     const endTime = new Date();
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
     const question = questions[currentQuestionIndex];
-    const score = calculateScore(question, userInputs);
+    const isCorrect = calculateScore(question, userInputs);
     
-    // Record result
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
-      score,
+      isCorrect,
       timeSpent,
       difficulty: question.difficulty
     };
@@ -175,64 +227,16 @@ const MemoryTest = () => {
     } else {
       setIsTestComplete(true);
       
-      // Calculate comprehensive results
       const analysis = calculateDyslexiaRisk(newResults);
       
       const testResults = {
         test: "Working Memory",
         ...analysis,
-        detailedResults: newResults,
-        questions
+        detailedResults: newResults
       };
       
       localStorage.setItem("testResults", JSON.stringify(testResults));
     }
-  };
-
-  const calculateDyslexiaRisk = (results: TestResult[]) => {
-    const totalQuestions = results.length;
-    const averageScore = results.reduce((sum, r) => sum + r.score, 0) / totalQuestions;
-    
-    // Calculate average time
-    const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
-    
-    // Dyslexia risk factors
-    let riskFactors = [];
-    let riskLevel = "Low";
-    
-    if (averageScore < 60) {
-      riskFactors.push("Difficulty with working memory tasks");
-    }
-    
-    if (averageTime > 30) {
-      riskFactors.push("Slower processing in memory recall tasks");
-    }
-    
-    // Calculate overall risk
-    const sequenceTaskScores = results.filter((_, i) => 
-      questions[i].type === "sequence"
-    ).map(r => r.score);
-    
-    const averageSequenceScore = sequenceTaskScores.length > 0 ? 
-      sequenceTaskScores.reduce((a, b) => a + b, 0) / sequenceTaskScores.length : 100;
-    
-    if (averageSequenceScore < 50) {
-      riskFactors.push("Significant difficulty with sequential memory");
-    }
-    
-    // Determine risk level
-    if (riskFactors.length >= 2 || averageScore < 40) {
-      riskLevel = "High";
-    } else if (riskFactors.length >= 1 || averageScore < 60) {
-      riskLevel = "Moderate";
-    }
-    
-    return {
-      averageScore,
-      averageTime,
-      riskFactors,
-      riskLevel
-    };
   };
 
   const handleViewResults = () => {

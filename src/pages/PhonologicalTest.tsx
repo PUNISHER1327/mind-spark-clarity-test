@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -86,24 +85,20 @@ const PhonologicalTest = () => {
     const correctAnswers = results.filter(r => r.isCorrect).length;
     const accuracy = (correctAnswers / totalQuestions) * 100;
     
-    // Calculate average time
     const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
     
-    // Time thresholds (in seconds) based on difficulty
     const timeThresholds = {
       easy: 12,
       medium: 20,
       hard: 30
     };
     
-    // Calculate time score - how many questions took too long
     const slowQuestions = results.filter(r => 
       r.timeSpent > timeThresholds[r.difficulty]
     ).length;
     
     const timeScore = ((totalQuestions - slowQuestions) / totalQuestions) * 100;
     
-    // Dyslexia risk factors
     let riskFactors = [];
     let riskLevel = "Low";
     
@@ -115,7 +110,6 @@ const PhonologicalTest = () => {
       riskFactors.push("Slower phonological awareness processing");
     }
     
-    // Calculate overall risk
     const easyQuestionErrors = results.filter(r => 
       r.difficulty === "easy" && !r.isCorrect
     ).length;
@@ -124,7 +118,6 @@ const PhonologicalTest = () => {
       riskFactors.push("Significant difficulty with basic sound recognition");
     }
     
-    // Determine risk level
     if (riskFactors.length >= 3 || (accuracy < 50 && timeScore < 50)) {
       riskLevel = "High";
     } else if (riskFactors.length >= 2 || accuracy < 65 || timeScore < 65) {
@@ -136,7 +129,7 @@ const PhonologicalTest = () => {
       averageTime,
       timeScore,
       riskFactors,
-      riskLevel,
+      riskLevel: riskLevel as "Low" | "Moderate" | "High",
       correctAnswers,
       totalQuestions
     };
@@ -145,11 +138,9 @@ const PhonologicalTest = () => {
   const handleNextQuestion = () => {
     if (!startTime) return;
     
-    // Calculate time spent on this question
     const endTime = new Date();
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
-    // Record result
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
       isCorrect: selectedOption === questions[currentQuestionIndex].correctAnswer,
@@ -167,14 +158,12 @@ const PhonologicalTest = () => {
     } else {
       setIsTestComplete(true);
       
-      // Calculate comprehensive results with dyslexia analysis
       const analysis = calculateDyslexiaRisk(newResults);
       
       const testResults = {
         test: "Phonological Awareness",
         ...analysis,
-        detailedResults: newResults,
-        questions
+        detailedResults: newResults
       };
       
       localStorage.setItem("testResults", JSON.stringify(testResults));
