@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import Tests from "./pages/Tests";
 import ReadingTest from "./pages/ReadingTest";
+import PhonologicalTest from "./pages/PhonologicalTest";
+import MemoryTest from "./pages/MemoryTest";
+import SequencingTest from "./pages/SequencingTest";
+import SpellingTest from "./pages/SpellingTest";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
 import SupportResourcesPage from "./pages/SupportResourcesPage";
@@ -32,6 +36,10 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/reading-test" element={<ReadingTest />} />
+            <Route path="/phonological-test" element={<PhonologicalTest />} />
+            <Route path="/memory-test" element={<MemoryTest />} />
+            <Route path="/sequencing-test" element={<SequencingTest />} />
+            <Route path="/spelling-test" element={<SpellingTest />} />
             <Route path="/results" element={<Results />} />
             <Route path="/support" element={<SupportResourcesPage />} />
             <Route path="/improve" element={<ImproveDyslexiaPage />} />

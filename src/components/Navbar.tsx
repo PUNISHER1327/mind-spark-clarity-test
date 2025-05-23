@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccessibility } from "@/components/AccessibilitySettings";
@@ -12,6 +12,8 @@ export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { settings } = useAccessibility();
   const animationsDisabled = settings.disableAnimations;
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,7 +41,7 @@ export const Navbar = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled 
+          isScrolled || !isHomePage
             ? "py-3 bg-background/80 backdrop-blur-lg border-b shadow-sm" 
             : "py-5 bg-transparent"
         }`}
