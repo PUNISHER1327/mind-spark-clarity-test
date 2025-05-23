@@ -438,7 +438,7 @@ const Index = () => {
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
                       <Phone className="h-5 w-5 text-primary" />
                     </div>
-                    <span>+1 (555) 123-4567</span>
+                    <span>+91 600 5609 423</span>
                   </div>
                 </div>
               </motion.div>
@@ -543,7 +543,7 @@ const Index = () => {
             </div>
             
             <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Dyslexia Test. All rights reserved.
+              &copy; {new Date().getFullYear()} DysCover. All rights reserved.
             </div>
           </div>
         </footer>
