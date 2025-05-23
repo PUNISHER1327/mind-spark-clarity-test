@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { DyslexiaLevel } from "@/pages/ImproveDyslexiaPage";
+import { DyslexiaLevel } from "@/types/dyslexia";
 import { ActivityCard } from "@/components/dyslexia-improvement/ActivityCard";
 import { useAccessibility } from "@/components/AccessibilitySettings";
 

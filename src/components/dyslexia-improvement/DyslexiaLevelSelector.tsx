@@ -3,7 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Brain, BookOpen, AudioLines } from "lucide-react";
-import { DyslexiaLevel } from "@/pages/ImproveDyslexiaPage";
+import { DyslexiaLevel } from "@/types/dyslexia";
 import { useAccessibility } from "@/components/AccessibilitySettings";
 
 interface DyslexiaLevelSelectorProps {
