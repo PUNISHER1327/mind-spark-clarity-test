@@ -31,7 +31,17 @@ const Results = () => {
   useEffect(() => {
     const storedResults = localStorage.getItem("testResults");
     if (storedResults) {
-      setResults(JSON.parse(storedResults));
+      try {
+        const parsedResults = JSON.parse(storedResults);
+        // Validate that the results have the required properties
+        if (parsedResults && 
+            typeof parsedResults.test === 'string' && 
+            typeof parsedResults.accuracy === 'number') {
+          setResults(parsedResults);
+        }
+      } catch (error) {
+        console.error("Failed to parse test results:", error);
+      }
     }
     
     setIsLoaded(true);
@@ -110,7 +120,7 @@ const Results = () => {
                         {getDyslexiaMessage(results.riskLevel, results.riskFactors).message}
                       </p>
                       
-                      {results.riskFactors.length > 0 && (
+                      {results.riskFactors && results.riskFactors.length > 0 && (
                         <div>
                           <h4 className="font-semibold mb-2">Identified Factors:</h4>
                           <ul className="text-sm space-y-1">
@@ -135,7 +145,9 @@ const Results = () => {
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Target className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="text-2xl font-bold text-primary">{results.accuracy.toFixed(1)}%</h3>
+                    <h3 className="text-2xl font-bold text-primary">
+                      {typeof results.accuracy === 'number' ? results.accuracy.toFixed(1) : 'N/A'}%
+                    </h3>
                     <p className="text-sm text-muted-foreground">Reading Accuracy</p>
                     <p className="text-xs mt-2">
                       {results.correctAnswers} of {results.totalQuestions} correct
@@ -148,7 +160,9 @@ const Results = () => {
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Clock className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-blue-600">{results.averageTime.toFixed(1)}s</h3>
+                    <h3 className="text-2xl font-bold text-blue-600">
+                      {typeof results.averageTime === 'number' ? results.averageTime.toFixed(1) : 'N/A'}s
+                    </h3>
                     <p className="text-sm text-muted-foreground">Average Time</p>
                     <p className="text-xs mt-2">Per question</p>
                   </CardContent>
@@ -159,7 +173,9 @@ const Results = () => {
                     <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Brain className="h-6 w-6 text-purple-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-purple-600">{results.timeScore.toFixed(1)}%</h3>
+                    <h3 className="text-2xl font-bold text-purple-600">
+                      {typeof results.timeScore === 'number' ? results.timeScore.toFixed(1) : 'N/A'}%
+                    </h3>
                     <p className="text-sm text-muted-foreground">Processing Speed</p>
                     <p className="text-xs mt-2">Compared to typical</p>
                   </CardContent>
@@ -167,7 +183,7 @@ const Results = () => {
               </div>
 
               {/* Detailed Question Analysis */}
-              {results.detailedResults && (
+              {results.detailedResults && results.detailedResults.length > 0 && (
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-bold mb-4">Question-by-Question Analysis</h3>
