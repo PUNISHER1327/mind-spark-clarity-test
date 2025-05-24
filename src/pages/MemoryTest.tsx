@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,10 @@ interface TestResult {
   isCorrect: boolean;
   timeSpent: number;
   difficulty: "easy" | "medium" | "hard";
+  userAnswers: string[];
+  correctAnswers: string[];
+  partialScore: number;
+  maxScore: number;
 }
 
 const MemoryTest = () => {
@@ -65,6 +68,20 @@ const MemoryTest = () => {
       content: ["house", "tree", "car", "dog", "book", "chair", "pen"],
       difficulty: "hard",
       duration: 8
+    },
+    {
+      type: "sequence",
+      instructions: "Memorize these numbers, then recall them in the same order:",
+      content: ["8", "2", "5", "1", "9", "3", "7"],
+      difficulty: "hard",
+      duration: 7
+    },
+    {
+      type: "recall",
+      instructions: "Memorize these words, then recall as many as you can in any order:",
+      content: ["mountain", "ocean", "forest", "desert", "river", "valley", "lake", "island"],
+      difficulty: "hard",
+      duration: 10
     }
   ];
 
@@ -108,35 +125,80 @@ const MemoryTest = () => {
     }
   };
 
-  const calculateScore = (question: Question, answers: string[]): boolean => {
-    const cleanAnswers = answers.filter(a => a.trim() !== "");
+  const calculateDetailedScore = (question: Question, answers: string[]): { isCorrect: boolean; partialScore: number; maxScore: number; userAnswers: string[]; correctAnswers: string[] } => {
+    const cleanAnswers = answers.filter(a => a.trim() !== "").map(a => a.toLowerCase().trim());
+    const correctAnswers = question.correctAnswer || question.content;
+    const correctAnswersLower = correctAnswers.map(a => a.toLowerCase());
     
     if (question.type === "sequence") {
-      const correctAnswers = question.correctAnswer || question.content;
-      let score = 0;
-      const minLength = Math.min(correctAnswers.length, cleanAnswers.length);
+      let exactMatches = 0;
+      let positionalScore = 0;
+      const maxScore = correctAnswers.length;
       
-      for (let i = 0; i < minLength; i++) {
-        if (cleanAnswers[i].toLowerCase().trim() === correctAnswers[i].toLowerCase()) {
-          score++;
+      // Calculate exact positional matches
+      for (let i = 0; i < Math.min(cleanAnswers.length, correctAnswers.length); i++) {
+        if (cleanAnswers[i] === correctAnswersLower[i]) {
+          exactMatches++;
+          positionalScore++;
         }
       }
       
-      return score >= correctAnswers.length * 0.6;
-    } else if (question.type === "recall") {
-      const correctContent = question.content.map(item => item.toLowerCase());
-      let correctCount = 0;
+      // Calculate partial credit for correct items in wrong positions
+      const remainingCorrect = correctAnswersLower.filter((item, index) => 
+        cleanAnswers[index] !== item
+      );
+      const remainingUser = cleanAnswers.filter((item, index) => 
+        item !== correctAnswersLower[index]
+      );
       
-      for (const answer of cleanAnswers) {
-        if (correctContent.includes(answer.toLowerCase().trim())) {
+      let partialMatches = 0;
+      remainingUser.forEach(userItem => {
+        const index = remainingCorrect.indexOf(userItem);
+        if (index !== -1) {
+          partialMatches++;
+          remainingCorrect.splice(index, 1);
+        }
+      });
+      
+      const finalScore = positionalScore + (partialMatches * 0.5);
+      const isCorrect = (finalScore / maxScore) >= 0.7;
+      
+      return {
+        isCorrect,
+        partialScore: Math.round(finalScore * 10) / 10,
+        maxScore,
+        userAnswers: cleanAnswers,
+        correctAnswers
+      };
+    } else if (question.type === "recall") {
+      let correctCount = 0;
+      const maxScore = question.content.length;
+      const contentLower = question.content.map(item => item.toLowerCase());
+      
+      cleanAnswers.forEach(answer => {
+        if (contentLower.includes(answer)) {
           correctCount++;
         }
-      }
+      });
       
-      return correctCount >= question.content.length * 0.5;
+      const isCorrect = (correctCount / maxScore) >= 0.6;
+      
+      return {
+        isCorrect,
+        partialScore: correctCount,
+        maxScore,
+        userAnswers: cleanAnswers,
+        correctAnswers: question.content
+      };
     }
     
-    return false;
+    return {
+      isCorrect: false,
+      partialScore: 0,
+      maxScore: 1,
+      userAnswers: cleanAnswers,
+      correctAnswers
+    };
   };
   
   const calculateDyslexiaRisk = (results: TestResult[]) => {
@@ -144,12 +206,17 @@ const MemoryTest = () => {
     const correctAnswers = results.filter(r => r.isCorrect).length;
     const accuracy = (correctAnswers / totalQuestions) * 100;
     
+    // Calculate partial score percentage
+    const totalPartialScore = results.reduce((sum, r) => sum + r.partialScore, 0);
+    const totalMaxScore = results.reduce((sum, r) => sum + r.maxScore, 0);
+    const partialAccuracy = (totalPartialScore / totalMaxScore) * 100;
+    
     const averageTime = results.reduce((sum, r) => sum + r.timeSpent, 0) / totalQuestions;
     
     const timeThresholds = {
-      easy: 20,
-      medium: 35,
-      hard: 50
+      easy: 25,
+      medium: 40,
+      hard: 60
     };
     
     const slowQuestions = results.filter(r => 
@@ -160,13 +227,35 @@ const MemoryTest = () => {
     
     let riskFactors = [];
     let riskLevel = "Low";
+    let recommendations = [];
     
-    if (accuracy < 50) {
-      riskFactors.push("Difficulty with working memory tasks");
+    // Detailed analysis
+    const sequenceTasks = results.filter(r => questions[r.questionIndex].type === "sequence");
+    const recallTasks = results.filter(r => questions[r.questionIndex].type === "recall");
+    
+    const sequenceAccuracy = sequenceTasks.length > 0 ? 
+      (sequenceTasks.filter(r => r.isCorrect).length / sequenceTasks.length) * 100 : 100;
+    const recallAccuracy = recallTasks.length > 0 ? 
+      (recallTasks.filter(r => r.isCorrect).length / recallTasks.length) * 100 : 100;
+    
+    if (partialAccuracy < 60) {
+      riskFactors.push("Significant difficulty with working memory tasks");
+      recommendations.push("Consider memory training exercises and chunking strategies");
+    }
+    
+    if (sequenceAccuracy < 50) {
+      riskFactors.push("Difficulty maintaining sequence order in memory");
+      recommendations.push("Practice with sequential memory games and mnemonics");
+    }
+    
+    if (recallAccuracy < 50) {
+      riskFactors.push("Challenges with free recall from working memory");
+      recommendations.push("Use visualization techniques and verbal rehearsal strategies");
     }
     
     if (timeScore < 60) {
       riskFactors.push("Slower processing in memory recall tasks");
+      recommendations.push("Allow extra time for memory-based tasks");
     }
     
     const easyQuestionErrors = results.filter(r => 
@@ -174,24 +263,35 @@ const MemoryTest = () => {
     ).length;
     
     if (easyQuestionErrors >= 1) {
-      riskFactors.push("Difficulty with basic memory tasks");
+      riskFactors.push("Difficulty with basic working memory operations");
+      recommendations.push("Start with simpler memory exercises and gradually increase complexity");
     }
     
-    if (riskFactors.length >= 2 || accuracy < 30) {
+    // Calculate overall risk level
+    if (riskFactors.length >= 3 || partialAccuracy < 40) {
       riskLevel = "High";
-    } else if (riskFactors.length >= 1 || accuracy < 50) {
+      recommendations.push("Consider consultation with a learning specialist");
+    } else if (riskFactors.length >= 2 || partialAccuracy < 60) {
       riskLevel = "Moderate";
+      recommendations.push("Implement memory support strategies in daily activities");
+    } else {
+      recommendations.push("Continue practicing to maintain strong working memory skills");
     }
     
     return {
       test: "Working Memory",
       accuracy,
-      averageTime,
-      timeScore,
+      partialAccuracy: Math.round(partialAccuracy * 10) / 10,
+      averageTime: Math.round(averageTime * 10) / 10,
+      timeScore: Math.round(timeScore * 10) / 10,
+      sequenceAccuracy: Math.round(sequenceAccuracy * 10) / 10,
+      recallAccuracy: Math.round(recallAccuracy * 10) / 10,
       riskFactors,
+      recommendations,
       riskLevel: riskLevel as "Low" | "Moderate" | "High",
       correctAnswers,
-      totalQuestions
+      totalQuestions,
+      detailedResults: results
     };
   };
 
@@ -202,13 +302,17 @@ const MemoryTest = () => {
     const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
     
     const question = questions[currentQuestionIndex];
-    const isCorrect = calculateScore(question, userInputs);
+    const scoreData = calculateDetailedScore(question, userInputs);
     
     const result: TestResult = {
       questionIndex: currentQuestionIndex,
-      isCorrect,
+      isCorrect: scoreData.isCorrect,
       timeSpent,
-      difficulty: question.difficulty
+      difficulty: question.difficulty,
+      userAnswers: scoreData.userAnswers,
+      correctAnswers: scoreData.correctAnswers,
+      partialScore: scoreData.partialScore,
+      maxScore: scoreData.maxScore
     };
     
     const newResults = [...results, result];

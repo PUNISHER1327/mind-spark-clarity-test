@@ -52,18 +52,18 @@ const Tests = () => {
       <div className="absolute inset-0 -z-10 bg-grid"></div>
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
       
-      <div className="container mx-auto pt-32 pb-20 px-4 md:pt-40 relative z-0">
+      <div className="container mx-auto pt-40 pb-20 px-4 md:pt-48 relative z-0">
         <div className={`max-w-5xl mx-auto text-center space-y-6 transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <AnimatedHeading delay={200} className="text-4xl md:text-5xl font-bold mb-6">
+          <AnimatedHeading delay={200} className="text-4xl md:text-5xl font-bold mb-8">
             Dyslexia Screening Tests
           </AnimatedHeading>
           
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12">
             Select one of our screening tests below. Each test takes approximately 3-5 minutes to complete and provides immediate feedback.
           </p>
         </div>
         
-        <div className="max-w-5xl mx-auto mt-12">
+        <div className="max-w-5xl mx-auto mt-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {tests.map((test, i) => (
               <div 

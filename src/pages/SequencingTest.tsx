@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 
 interface Question {
@@ -147,6 +146,7 @@ const SequencingTest = () => {
     }
     
     return {
+      test: "Sequencing",
       accuracy,
       averageTime,
       timeScore,
@@ -183,14 +183,7 @@ const SequencingTest = () => {
       setIsTestComplete(true);
       
       const analysis = calculateDyslexiaRisk(newResults);
-      
-      const testResults = {
-        test: "Sequencing",
-        ...analysis,
-        detailedResults: newResults
-      };
-      
-      localStorage.setItem("testResults", JSON.stringify(testResults));
+      localStorage.setItem("testResults", JSON.stringify(analysis));
     }
   };
 
@@ -207,7 +200,7 @@ const SequencingTest = () => {
       <div className="absolute inset-0 -z-10 bg-grid"></div>
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
       
-      <div className="container mx-auto pt-32 pb-20 px-4 md:pt-40 relative z-0">
+      <div className="container mx-auto pt-40 pb-20 px-4 md:pt-48 relative z-0">
         <div className={`max-w-3xl mx-auto transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {!isTestComplete ? (
             <>
@@ -234,25 +227,52 @@ const SequencingTest = () => {
                     
                     <DragDropContext onDragEnd={handleDragEnd}>
                       <Droppable droppableId="sequencing-items">
-                        {(provided) => (
+                        {(provided, snapshot) => (
                           <div
                             {...provided.droppableProps}
                             ref={provided.innerRef}
-                            className="space-y-2"
+                            className={`space-y-2 p-2 rounded-lg transition-colors ${
+                              snapshot.isDraggingOver ? 'bg-primary/5' : ''
+                            }`}
                           >
                             {items.map((item, index) => (
-                              <Draggable key={item} draggableId={item} index={index}>
-                                {(provided) => (
+                              <Draggable key={`${item}-${index}`} draggableId={`${item}-${index}`} index={index}>
+                                {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className="bg-card border p-4 rounded-lg flex items-center gap-3 cursor-move"
+                                    className={`bg-card border p-4 rounded-lg flex items-center gap-3 select-none transition-all duration-200 ${
+                                      snapshot.isDragging 
+                                        ? 'shadow-lg scale-105 bg-primary/10 border-primary rotate-2' 
+                                        : 'hover:shadow-md hover:border-primary/50'
+                                    }`}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                      transform: snapshot.isDragging 
+                                        ? `${provided.draggableProps.style?.transform} rotate(2deg)`
+                                        : provided.draggableProps.style?.transform
+                                    }}
                                   >
-                                    <div className="w-8 h-8 bg-muted flex items-center justify-center rounded-full text-sm font-medium">
-                                      {index + 1}
+                                    <div 
+                                      {...provided.dragHandleProps}
+                                      className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
+                                        snapshot.isDragging 
+                                          ? 'bg-primary text-primary-foreground' 
+                                          : 'bg-muted hover:bg-primary/10'
+                                      }`}
+                                    >
+                                      {snapshot.isDragging ? (
+                                        <span className="text-sm font-bold">{index + 1}</span>
+                                      ) : (
+                                        <GripVertical className="h-4 w-4" />
+                                      )}
                                     </div>
-                                    <div>{item}</div>
+                                    <div className="flex-1 text-sm md:text-base font-medium">
+                                      {item}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      Position {index + 1}
+                                    </div>
                                   </div>
                                 )}
                               </Draggable>
@@ -262,6 +282,10 @@ const SequencingTest = () => {
                         )}
                       </Droppable>
                     </DragDropContext>
+                    
+                    <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/50 rounded-lg">
+                      <strong>Tip:</strong> Grab the grip handle (⋮⋮) to drag items to their correct positions.
+                    </div>
                   </div>
                 </CardContent>
               </Card>
