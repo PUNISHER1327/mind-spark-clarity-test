@@ -242,7 +242,7 @@ const Index = () => {
           <div className="bg-card/40 backdrop-blur-sm border rounded-2xl p-8 md:p-12 max-w-3xl mx-auto">
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <h3 className="text-4xl font-bold text-primary">1 in 5</h3>
+                <h3 className="text-4xl font-bold text-primary">1 in 10</h3>
                 <p className="text-muted-foreground mt-2">People have signs of dyslexia</p>
               </div>
               <div className="text-center">
@@ -250,7 +250,7 @@ const Index = () => {
                 <p className="text-muted-foreground mt-2">Of dyslexics go undiagnosed</p>
               </div>
               <div className="text-center">
-                <h3 className="text-4xl font-bold text-primary">5 min</h3>
+                <h3 className="text-4xl font-bold text-primary">30 min</h3>
                 <p className="text-muted-foreground mt-2">To complete our screening</p>
               </div>
             </div>
@@ -276,22 +276,22 @@ const Index = () => {
             <div className="grid md:grid-cols-4 gap-6">
               <StatCard 
                 icon={Brain}
-                number="15+"
+                number="2+"
                 label="Years Research" 
               />
               <StatCard 
                 icon={BookOpen}
-                number="98%"
+                number="90%"
                 label="Accuracy Rate" 
               />
               <StatCard 
                 icon={CheckCircle}
-                number="3.2M+"
+                number="1.2M+"
                 label="Tests Completed" 
               />
               <StatCard 
                 icon={Clock}
-                number="5 min"
+                number="10 min"
                 label="Average Test Time" 
               />
             </div>
@@ -317,17 +317,17 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <TestimonialCard 
                 quote="This test helped me understand why I've always struggled with reading. The personalized results were eye-opening."
-                author="Michael T."
-                role="Teacher, 42"
+                author="Abhishek A R."
+                role="Student, 16"
               />
               <TestimonialCard 
                 quote="As a parent, I was worried about my daughter's reading difficulties. This screening gave us the clarity to seek professional help."
-                author="Sarah K."
+                author="Sheetal Kumari."
                 role="Parent, 38"
               />
               <TestimonialCard 
                 quote="The accessibility features made this test so much easier for me. I finally feel understood!"
-                author="Jamie R."
+                author="Amay Verma"
                 role="Student, 19"
               />
             </div>
@@ -401,12 +401,13 @@ const Index = () => {
             </div>
             
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <LocationCard country="United States" users={250000} />
-              <LocationCard country="United Kingdom" users={120000} />
-              <LocationCard country="Australia" users={75000} />
-              <LocationCard country="Canada" users={68000} />
-              <LocationCard country="Germany" users={45000} />
               <LocationCard country="India" users={42000} />
+              <LocationCard country="United States" users={2500} />
+              <LocationCard country="United Kingdom" users={1200} />
+              <LocationCard country="Australia" users={750} />
+              <LocationCard country="Canada" users={6800} />
+              <LocationCard country="Germany" users={4500} />
+              
             </div>
           </div>
         </section>
@@ -431,7 +432,7 @@ const Index = () => {
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
                       <Mail className="h-5 w-5 text-primary" />
                     </div>
-                    <span>hello@dyslexiatest.com</span>
+                    <span>aditya1290manhas.com</span>
                   </div>
                   
                   <div className="flex items-center">
