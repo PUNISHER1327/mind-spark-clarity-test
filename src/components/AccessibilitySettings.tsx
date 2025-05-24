@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, Volume2 } from "lucide-react";
@@ -16,10 +17,11 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 type AccessibilitySettings = {
-  dyslexicFont: boolean;
+  dyslexicFont: "none" | "opendyslexic" | "comic-sans" | "lexend" | "atkinson";
   largeText: boolean;
   lineSpacing: boolean;
   backgroundTheme: "default" | "sepia" | "soft-blue" | "soft-gray";
@@ -29,7 +31,7 @@ type AccessibilitySettings = {
 };
 
 const defaultSettings: AccessibilitySettings = {
-  dyslexicFont: false,
+  dyslexicFont: "none",
   largeText: false,
   lineSpacing: false,
   backgroundTheme: "default",
@@ -37,6 +39,14 @@ const defaultSettings: AccessibilitySettings = {
   readingRuler: false,
   textToSpeech: false,
 };
+
+const fontOptions = [
+  { value: "none", label: "Default Font", family: "'Inter', system-ui, sans-serif" },
+  { value: "opendyslexic", label: "OpenDyslexic", family: "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif" },
+  { value: "comic-sans", label: "Comic Sans MS", family: "'Comic Sans MS', cursive, sans-serif" },
+  { value: "lexend", label: "Lexend", family: "'Lexend', sans-serif" },
+  { value: "atkinson", label: "Atkinson Hyperlegible", family: "'Atkinson Hyperlegible', sans-serif" },
+];
 
 export const AccessibilityContext = React.createContext<{
   settings: AccessibilitySettings;
@@ -87,6 +97,9 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
       setSpeechSynthesis(window.speechSynthesis);
     }
 
+    // Load font links
+    loadFontLinks();
+
     // Apply initial settings to document
     applySettingsToDocument(savedSettings ? JSON.parse(savedSettings) : defaultSettings);
   }, []);
@@ -102,24 +115,34 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem("rulerHeight", rulerHeight.toString());
   }, [rulerHeight]);
 
+  // Load font links
+  const loadFontLinks = () => {
+    const fontLinks = [
+      { id: 'opendyslexic-font', href: 'https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/OpenDyslexic-Regular.css' },
+      { id: 'lexend-font', href: 'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap' },
+      { id: 'atkinson-font', href: 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap' }
+    ];
+
+    fontLinks.forEach(({ id, href }) => {
+      if (!document.querySelector(`#${id}`)) {
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    });
+  };
+
   // Apply settings to document
   const applySettingsToDocument = (currentSettings: AccessibilitySettings) => {
     const root = document.documentElement;
 
-    // Font family - properly load OpenDyslexic
-    if (currentSettings.dyslexicFont) {
-      // Add OpenDyslexic font link if not already present
-      if (!document.querySelector('link[href*="opendyslexic"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/OpenDyslexic-Regular.css';
-        document.head.appendChild(link);
-      }
-      root.style.setProperty("--font-sans", "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif");
-      document.body.style.fontFamily = "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif";
-    } else {
-      root.style.setProperty("--font-sans", "'Inter', system-ui, sans-serif");
-      document.body.style.fontFamily = "'Inter', system-ui, sans-serif";
+    // Font family
+    const selectedFont = fontOptions.find(font => font.value === currentSettings.dyslexicFont);
+    if (selectedFont) {
+      root.style.setProperty("--font-sans", selectedFont.family);
+      document.body.style.fontFamily = selectedFont.family;
     }
 
     // Disable animations
@@ -314,20 +337,25 @@ export const AccessibilitySettings = () => {
           <div className="p-4 pb-0">
             <div className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dyslexic-font">Dyslexia-friendly font</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Use OpenDyslexic font
-                    </p>
-                  </div>
-                  <Switch
-                    id="dyslexic-font"
-                    checked={settings.dyslexicFont}
-                    onCheckedChange={(checked) =>
-                      updateSettings({ dyslexicFont: checked })
+                <div className="space-y-2">
+                  <Label htmlFor="dyslexic-font">Dyslexia-friendly fonts</Label>
+                  <Select
+                    value={settings.dyslexicFont}
+                    onValueChange={(value) =>
+                      updateSettings({ dyslexicFont: value as AccessibilitySettings["dyslexicFont"] })
                     }
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fontOptions.map((font) => (
+                        <SelectItem key={font.value} value={font.value}>
+                          {font.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="flex items-center justify-between">

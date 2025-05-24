@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock, Eye, EyeOff } from "lucide-react";
 
 interface Question {
   type: "sequence" | "recall";
@@ -28,7 +28,7 @@ interface TestResult {
 const MemoryTest = () => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [phase, setPhase] = useState<"memorize" | "recall">("memorize");
+  const [phase, setPhase] = useState<"instructions" | "memorize" | "recall">("instructions");
   const [userInputs, setUserInputs] = useState<string[]>([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [results, setResults] = useState<TestResult[]>([]);
@@ -70,7 +70,6 @@ const MemoryTest = () => {
 
   useEffect(() => {
     setIsLoaded(true);
-    startMemorizingPhase();
   }, []);
   
   useEffect(() => {
@@ -89,6 +88,12 @@ const MemoryTest = () => {
     setPhase("memorize");
     setUserInputs([]);
     setTimeLeft(questions[currentQuestionIndex].duration);
+  };
+
+  const startInstructionsPhase = () => {
+    setPhase("instructions");
+    setUserInputs([]);
+    setStartTime(null);
   };
 
   const handleWordInput = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -179,6 +184,7 @@ const MemoryTest = () => {
     }
     
     return {
+      test: "Working Memory",
       accuracy,
       averageTime,
       timeScore,
@@ -210,19 +216,12 @@ const MemoryTest = () => {
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      startMemorizingPhase();
+      startInstructionsPhase();
     } else {
       setIsTestComplete(true);
       
       const analysis = calculateDyslexiaRisk(newResults);
-      
-      const testResults = {
-        test: "Working Memory",
-        ...analysis,
-        detailedResults: newResults
-      };
-      
-      localStorage.setItem("testResults", JSON.stringify(testResults));
+      localStorage.setItem("testResults", JSON.stringify(analysis));
     }
   };
 
@@ -232,6 +231,32 @@ const MemoryTest = () => {
 
   const progressPercentage = ((currentQuestionIndex) / questions.length) * 100;
   const currentQuestion = questions[currentQuestionIndex];
+
+  const renderInstructionsPhase = () => (
+    <Card className="glass mb-8">
+      <CardContent className="p-6 md:p-8 text-center">
+        <div className="mb-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-4">
+            <Eye className="h-8 w-8 text-primary" />
+          </div>
+        </div>
+        
+        <AnimatedHeading delay={200} className="text-xl md:text-2xl font-medium mb-6">
+          {currentQuestion.instructions}
+        </AnimatedHeading>
+        
+        <p className="text-muted-foreground mb-6">
+          You will have {currentQuestion.duration} seconds to memorize the items shown.
+          {currentQuestion.correctAnswer && " Remember to recall them in REVERSE order!"}
+        </p>
+        
+        <Button onClick={startMemorizingPhase} className="gap-2">
+          <Eye className="h-4 w-4" />
+          Start Memorizing
+        </Button>
+      </CardContent>
+    </Card>
+  );
 
   const renderMemorizePhase = () => (
     <Card className="glass mb-8">
@@ -244,10 +269,6 @@ const MemoryTest = () => {
           <div className="text-sm text-muted-foreground">seconds remaining</div>
         </div>
         
-        <AnimatedHeading delay={200} className="text-xl md:text-2xl font-medium mb-6">
-          {currentQuestion.instructions}
-        </AnimatedHeading>
-        
         <div className="flex flex-wrap justify-center gap-3 my-8">
           {currentQuestion.content.map((item, i) => (
             <div key={i} className="text-2xl md:text-3xl font-bold bg-card px-6 py-4 rounded-lg border">
@@ -255,6 +276,10 @@ const MemoryTest = () => {
             </div>
           ))}
         </div>
+        
+        <p className="text-sm text-muted-foreground">
+          {currentQuestion.correctAnswer ? "Remember: You need to recall these in REVERSE order!" : "Memorize these items in the exact order shown."}
+        </p>
       </CardContent>
     </Card>
   );
@@ -262,24 +287,35 @@ const MemoryTest = () => {
   const renderRecallPhase = () => (
     <Card className="glass mb-8">
       <CardContent className="p-6 md:p-8">
-        <AnimatedHeading delay={200} className="text-xl md:text-2xl font-medium mb-8">
-          Now, recall what you memorized:
-        </AnimatedHeading>
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-4">
+            <EyeOff className="h-8 w-8 text-primary" />
+          </div>
+          <AnimatedHeading delay={200} className="text-xl md:text-2xl font-medium">
+            Now, recall what you memorized:
+          </AnimatedHeading>
+          {currentQuestion.correctAnswer && (
+            <p className="text-sm text-orange-600 font-medium mt-2">
+              Remember: Enter them in REVERSE order!
+            </p>
+          )}
+        </div>
         
         <div className="space-y-4">
           {currentQuestion.type === "sequence" && (
             <div className="flex flex-col">
               <div className="mb-2 text-sm font-medium">Enter the items in the correct sequence:</div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-center">
                 {Array.from({ length: currentQuestion.content.length }).map((_, i) => (
                   <input
                     key={i}
                     type="text"
-                    maxLength={2}
+                    maxLength={5}
                     value={userInputs[i] || ""}
                     onChange={(e) => handleWordInput(e, i)}
-                    className="w-14 h-14 text-center text-lg font-medium bg-card border rounded-md"
+                    className="w-16 h-16 text-center text-lg font-medium bg-card border rounded-md"
                     autoFocus={i === 0}
+                    placeholder={`${i + 1}`}
                   />
                 ))}
               </div>
@@ -338,7 +374,9 @@ const MemoryTest = () => {
                 <Progress value={progressPercentage} className="h-2" />
               </div>
               
-              {phase === "memorize" ? renderMemorizePhase() : renderRecallPhase()}
+              {phase === "instructions" && renderInstructionsPhase()}
+              {phase === "memorize" && renderMemorizePhase()}
+              {phase === "recall" && renderRecallPhase()}
               
               <div className="flex justify-end">
                 {phase === "recall" && (
