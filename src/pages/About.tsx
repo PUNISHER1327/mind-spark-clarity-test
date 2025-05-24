@@ -81,7 +81,7 @@ const About = () => {
   const facts = [
     {
       icon: Users,
-      stat: "1 in 5",
+      stat: "1 in 10",
       label: "People have dyslexia",
       description: "Dyslexia affects about 15-20% of the population, making it one of the most common learning differences."
     },
