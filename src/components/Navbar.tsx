@@ -53,8 +53,8 @@ export const Navbar = () => {
       >
         <div className="container flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-primary">Dyslexia</span>
-            <span className="text-2xl font-medium ml-1">Test</span>
+            <span className="text-2xl font-bold text-primary">Dys</span>
+            <span className="text-2xl font-medium ml-1">Cover</span>
           </Link>
 
           {/* Desktop Navigation */}
