@@ -326,7 +326,7 @@ const Index = () => {
                 role="Parent, 38"
               />
               <TestimonialCard 
-                quote="The accessibility features made this test so much easier for me. I finally feel understood!"
+                quote="The accessibility features made this test so much easier for me. I finally feel understood and for me that is the best thing ever!"
                 author="Amay Verma"
                 role="Student, 19"
               />
