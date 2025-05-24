@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -200,7 +201,7 @@ const SequencingTest = () => {
       <div className="absolute inset-0 -z-10 bg-grid"></div>
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
       
-      <div className="container mx-auto pt-40 pb-20 px-4 md:pt-48 relative z-0">
+      <div className="container mx-auto pt-32 pb-20 px-4 md:pt-36 relative z-0">
         <div className={`max-w-3xl mx-auto transition-all duration-1000 transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {!isTestComplete ? (
             <>
@@ -243,13 +244,13 @@ const SequencingTest = () => {
                                     {...provided.draggableProps}
                                     className={`bg-card border p-4 rounded-lg flex items-center gap-3 select-none transition-all duration-200 ${
                                       snapshot.isDragging 
-                                        ? 'shadow-lg scale-105 bg-primary/10 border-primary rotate-2' 
+                                        ? 'shadow-lg scale-105 bg-primary/10 border-primary z-50' 
                                         : 'hover:shadow-md hover:border-primary/50'
                                     }`}
                                     style={{
                                       ...provided.draggableProps.style,
                                       transform: snapshot.isDragging 
-                                        ? `${provided.draggableProps.style?.transform} rotate(2deg)`
+                                        ? provided.draggableProps.style?.transform
                                         : provided.draggableProps.style?.transform
                                     }}
                                   >
