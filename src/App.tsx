@@ -12,6 +12,14 @@ import PhonologicalTest from "./pages/PhonologicalTest";
 import MemoryTest from "./pages/MemoryTest";
 import SequencingTest from "./pages/SequencingTest";
 import SpellingTest from "./pages/SpellingTest";
+import ReadingTest6to9 from "./pages/ReadingTest6to9";
+import PhonologicalTest6to9 from "./pages/PhonologicalTest6to9";
+import MemoryTest6to9 from "./pages/MemoryTest6to9";
+import SequencingTest6to9 from "./pages/SequencingTest6to9";
+import ReadingTest9to12 from "./pages/ReadingTest9to12";
+import PhonologicalTest9to12 from "./pages/PhonologicalTest9to12";
+import MemoryTest9to12 from "./pages/MemoryTest9to12";
+import SequencingTest9to12 from "./pages/SequencingTest9to12";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
 import SupportResourcesPage from "./pages/SupportResourcesPage";
@@ -40,6 +48,14 @@ const App = () => (
             <Route path="/memory-test" element={<MemoryTest />} />
             <Route path="/sequencing-test" element={<SequencingTest />} />
             <Route path="/spelling-test" element={<SpellingTest />} />
+            <Route path="/reading-test-6-9" element={<ReadingTest6to9 />} />
+            <Route path="/phonological-test-6-9" element={<PhonologicalTest6to9 />} />
+            <Route path="/memory-test-6-9" element={<MemoryTest6to9 />} />
+            <Route path="/sequencing-test-6-9" element={<SequencingTest6to9 />} />
+            <Route path="/reading-test-9-12" element={<ReadingTest9to12 />} />
+            <Route path="/phonological-test-9-12" element={<PhonologicalTest9to12 />} />
+            <Route path="/memory-test-9-12" element={<MemoryTest9to12 />} />
+            <Route path="/sequencing-test-9-12" element={<SequencingTest9to12 />} />
             <Route path="/results" element={<Results />} />
             <Route path="/support" element={<SupportResourcesPage />} />
             <Route path="/improve" element={<ImproveDyslexiaPage />} />
