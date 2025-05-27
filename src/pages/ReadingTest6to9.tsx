@@ -59,27 +59,37 @@ const ReadingTest6to9 = () => {
     const newAnswers = [...answers, selectedAnswer];
     setAnswers(newAnswers);
     setSelectedAnswer("");
-
+  
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      setIsTestComplete(true);
-      // Store results for the results page
       const score = newAnswers.reduce((acc, answer, index) => {
         return acc + (answer === questions[index].correct ? 1 : 0);
       }, 0);
-      
-      localStorage.setItem('testResults', JSON.stringify({
-        type: 'Reading Test (Ages 6-9)',
-        score: score,
-        total: questions.length,
-        answers: newAnswers,
-        recommendations: getRecommendations(score)
+  
+      const detailedResults = questions.map((q, idx) => ({
+        questionIndex: idx + 1,
+        isCorrect: newAnswers[idx] === q.correct,
+        timeSpent: 0,
+        difficulty: "Easy"
       }));
-      
-      navigate('/results');
+  
+      localStorage.setItem("testResults", JSON.stringify({
+        test: "Reading Test (Ages 6–9)",
+        accuracy: Math.round((score / questions.length) * 100),
+        averageTime: 0,
+        timeScore: 0,
+        riskFactors: [],
+        riskLevel: score >= 4 ? "Low" : score >= 2 ? "Moderate" : "High",
+        correctAnswers: score,
+        totalQuestions: questions.length,
+        detailedResults
+      }));
+  
+      navigate("/results");
     }
   };
+  
 
   const getRecommendations = (score: number) => {
     if (score >= 4) {
