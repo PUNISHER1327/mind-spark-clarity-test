@@ -72,24 +72,47 @@ const MemoryTest6to9 = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
+      // Inside handleNext() where test ends
       const score = newAnswers.reduce((acc, answer, index) => {
         const correctSet = new Set(questions[index].correct);
         const answerSet = new Set(answer.split(", "));
         const correctCount = [...correctSet].filter(item => answerSet.has(item)).length;
         return acc + (correctCount === 3 ? 1 : correctCount * 0.33);
       }, 0);
-      
-      localStorage.setItem('testResults', JSON.stringify({
-        type: 'Memory Match (Ages 6-9)',
-        score: Math.round(score),
-        total: questions.length,
-        answers: newAnswers,
-        recommendations: getRecommendations(Math.round(score))
+
+      // Detailed results
+      const detailedResults = questions.map((q, idx) => {
+        const userAnsArr = newAnswers[idx] ? newAnswers[idx].split(", ") : [];
+        const correctSet = new Set(q.correct);
+        const userSet = new Set(userAnsArr);
+        const isCorrect = q.correct.every(ans => userSet.has(ans)) && userAnsArr.length === q.correct.length;
+        return {
+          questionIndex: idx + 1,
+          isCorrect,
+          timeSpent: 0, // update if you track time
+          difficulty: "Normal"
+        };
+      });
+
+      const percentage = Math.round((score / questions.length) * 100);
+
+      localStorage.setItem("testResults", JSON.stringify({
+        test: "Memory Match (Ages 6-9)",
+        accuracy: percentage,
+        averageTime: 0,
+        timeScore: 0,
+        riskFactors: [],
+        riskLevel: score >= 3 ? "Low" : score >= 2 ? "Moderate" : "High",
+        correctAnswers: Math.round(score),
+        totalQuestions: questions.length,
+        detailedResults
       }));
-      
-      navigate('/results');
+
+      navigate("/results");
+
     }
   };
+
 
   const getRecommendations = (score: number) => {
     if (score >= 3) {
@@ -104,7 +127,7 @@ const MemoryTest6to9 = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
@@ -157,7 +180,7 @@ const MemoryTest6to9 = () => {
                   <h3 className="text-xl font-semibold mb-6">
                     {questions[currentQuestion].question}
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     {questions[currentQuestion].options.map((option) => (
                       <Button
