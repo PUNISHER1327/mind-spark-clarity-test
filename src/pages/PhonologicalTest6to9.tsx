@@ -67,7 +67,7 @@ const PhonologicalTest6to9 = () => {
     const newAnswers = [...answers, selectedAnswer];
     setAnswers(newAnswers);
     setSelectedAnswer("");
-
+  
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
@@ -75,18 +75,33 @@ const PhonologicalTest6to9 = () => {
         const correctAnswer = questions[index].options.find(opt => opt.correct)?.text;
         return acc + (answer === correctAnswer ? 1 : 0);
       }, 0);
-      
-      localStorage.setItem('testResults', JSON.stringify({
-        type: 'Sound Games (Ages 6-9)',
-        score: score,
-        total: questions.length,
-        answers: newAnswers,
-        recommendations: getRecommendations(score)
+  
+      const detailedResults = questions.map((q, idx) => {
+        const correctAnswer = q.options.find(opt => opt.correct)?.text;
+        return {
+          questionIndex: idx + 1,
+          isCorrect: newAnswers[idx] === correctAnswer,
+          timeSpent: 0,
+          difficulty: "Normal"
+        };
+      });
+  
+      localStorage.setItem("testResults", JSON.stringify({
+        test: "Sound Games (Ages 6–9)",
+        accuracy: Math.round((score / questions.length) * 100),
+        averageTime: 0,
+        timeScore: 0,
+        riskFactors: [],
+        riskLevel: score >= 3 ? "Low" : score >= 2 ? "Moderate" : "High",
+        correctAnswers: score,
+        totalQuestions: questions.length,
+        detailedResults
       }));
-      
-      navigate('/results');
+  
+      navigate("/results");
     }
   };
+  
 
   const getRecommendations = (score: number) => {
     if (score >= 3) {
