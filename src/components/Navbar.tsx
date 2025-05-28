@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAccessibility } from "@/components/AccessibilitySettings";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { settings } = useAccessibility();
-  const animationsDisabled = settings.disableAnimations;
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
@@ -41,6 +41,11 @@ export const Navbar = () => {
   ];
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/signin");
+  };
 
   return (
     <>
@@ -72,7 +77,32 @@ export const Navbar = () => {
                 {link.text}
               </Link>
             ))}
-            <div className="ml-2">
+            <div className="ml-4 flex items-center space-x-2">
+              {user ? (
+                <>
+                  <Link to="/external-profile">
+                    <Button variant="ghost" size="sm">
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/signin">
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button variant="default" size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
               <ThemeToggle />
             </div>
           </nav>
@@ -96,7 +126,7 @@ export const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={animationsDisabled ? { opacity: 1 } : { opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
@@ -117,6 +147,52 @@ export const Navbar = () => {
                   {link.text}
                 </Link>
               ))}
+
+              <div className="mt-4 flex flex-col gap-2 px-4">
+                {user ? (
+                  <>
+                    <Link
+                      to="/external-profile"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Button variant="outline" className="w-full">
+                        Profile
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={async () => {
+                        await handleSignOut();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/signin">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/signup">
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
             </nav>
           </motion.div>
         )}
